@@ -7,10 +7,8 @@ import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: 'Authentication',
-  description: 'Authentication forms built using the components.'
+  description: 'Authentication forms built using the components provided by CamPick',
 };
-
-
 
 export default function SignUpViewPage() {
   return (
@@ -50,9 +48,13 @@ export default function SignUpViewPage() {
             </p>
           </div>
           <UserSignupForm />
-       
         </div>
       </div>
     </div>
   );
 }
+
+
+
+
+       
