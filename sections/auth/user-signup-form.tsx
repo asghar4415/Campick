@@ -58,7 +58,7 @@ export default function UserSignupForm() {
   };
 
   const gotoLoginPage = () => {
-    router.push('/');
+    router.push('/signin');
   };
 
   return (

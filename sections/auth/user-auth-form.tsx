@@ -13,14 +13,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import axios from 'axios';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { useRouter } from 'next/navigation'; // Correct import
+import { useRouter } from 'next/navigation';
 import GoogleSignInButton from './google-auth-button';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Enter a valid email address' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters long' }), // Add password validation
+  password: z
+    .string()
+    .min(6, { message: 'Password must be at least 6 characters long' }) // Add password validation
 });
 
 type UserFormValue = z.infer<typeof formSchema>;
@@ -28,7 +30,7 @@ type UserFormValue = z.infer<typeof formSchema>;
 export default function UserAuthForm() {
   const router = useRouter(); // Initialize router
   const form = useForm<UserFormValue>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema)
   });
 
   const onSubmit = async (data: UserFormValue) => {
@@ -36,7 +38,7 @@ export default function UserAuthForm() {
       // console.log('Login data:', data);
       const response = await axios.post(`${API_URL}/api/signin`, {
         email: data.email,
-        password: data.password,
+        password: data.password
       });
       console.log('Login response:', response.data);
       console.log(response.data.message);
@@ -59,7 +61,10 @@ export default function UserAuthForm() {
   return (
     <>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-2">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="w-full space-y-2"
+        >
           <FormField
             control={form.control}
             name="email"
@@ -99,11 +104,15 @@ export default function UserAuthForm() {
           </Button>
         </form>
       </Form>
-        
+
       <div className="relative flex justify-center text-xs uppercase">
         <span className="bg-background px-2 text-muted-foreground">
           If you don't have an account,{' '}
-          <a onClick={gotosignuppage} className="text-primary" style={{cursor: 'pointer'}}>
+          <a
+            onClick={gotosignuppage}
+            className="text-primary"
+            style={{ cursor: 'pointer' }}
+          >
             Sign Up
           </a>
         </span>
@@ -113,7 +122,7 @@ export default function UserAuthForm() {
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />
         </div>
-        
+
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-background px-2 text-muted-foreground">
             Or continue with

@@ -1,20 +1,29 @@
-import { Metadata } from 'next';
-import { NavigationMenuDemo } from '@/components/navbar';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'CamPick',
-  description: 'Home Page'
-};
+import { useEffect, useState } from 'react';
+import { NavigationMenuDemo } from '@/components/navbar';
+import { tr } from 'date-fns/locale';
+import { Hero5 } from '@/components/hero';
 
 export default function HomePage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, []);
+
   return (
     <div>
-      <NavigationMenuDemo />
-      {/* Main content starts below the navbar with some space */}
-      <div className="container mx-auto mt-20 px-4 py-8">
-        {/* Add your hero and other components here */}
-        <h1 className="text-4xl font-bold">Welcome to CamPick</h1>
-        <p className="mt-4 text-lg">Capture the moments that matter most.</p>
+      <NavigationMenuDemo isLoggedIn={isLoggedIn} />
+      <div className="container mx-auto px-4 py-8">
+        {/* <h1 className="text-4xl font-bold">Welcome to CamPick</h1>
+        <p className="mt-4 text-lg">Capture the moments that matter most.</p> */}
+        <Hero5 />
       </div>
     </div>
   );

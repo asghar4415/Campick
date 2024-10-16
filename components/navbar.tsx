@@ -12,8 +12,16 @@ import {
 import { Menu, MoveRight, X } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import MainLogoBlack from '@/public/black logo.png';
+import Image from 'next/image';
 
-export const NavigationMenuDemo = () => {
+interface NavigationMenuDemoProps {
+  isLoggedIn: boolean;
+}
+
+export const NavigationMenuDemo = ({ isLoggedIn }: NavigationMenuDemoProps) => {
+  const navigate = useRouter();
   const navigationItems = [
     {
       title: 'Home',
@@ -121,14 +129,34 @@ export const NavigationMenuDemo = () => {
           </NavigationMenu>
         </div>
         <div className="flex lg:justify-center">
-          <p className="font-semibold">TWBlocks</p>
+          {/* <p className="font-semibold">TWBlocks</p> */}
+          <Image
+            src={MainLogoBlack}
+            alt="CamPick Logo"
+            width={140}
+            height={70}
+          />
         </div>
         <div className="flex w-full justify-end gap-4">
-          <Button variant="ghost" className="hidden md:inline">
+          {/* <Button variant="ghost" className="hidden md:inline">
             Book a demo
-          </Button>
+          </Button> */}
           <div className="hidden border-r md:inline"></div>
-          <Button variant="outline">Sign in</Button>
+
+          {/* Conditional rendering based on isLoggedIn */}
+          {isLoggedIn ? (
+            <Button variant="outline">Profile</Button>
+          ) : (
+            <Button
+              variant="outline"
+              onClick={() => {
+                navigate.push('/signin');
+              }}
+            >
+              Sign in
+            </Button>
+          )}
+
           <Button>Get started</Button>
         </div>
         <div className="flex w-12 shrink items-end justify-end lg:hidden">
