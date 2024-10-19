@@ -7,11 +7,10 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { auth } from '@/auth';
 
-
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'CamPick',
+  title: 'CamPick'
 };
 
 export default async function RootLayout({
@@ -23,7 +22,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.className} overflow-hidden `}
+        className={`${inter.className}`} // Remove 'overflow-hidden'
         suppressHydrationWarning={true}
       >
         <NextTopLoader showSpinner={false} />

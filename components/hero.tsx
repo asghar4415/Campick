@@ -1,16 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-
 import { motion } from 'framer-motion';
-
 import { MoveRight, PhoneCall } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export const Hero5 = () => {
   const [titleNumber, setTitleNumber] = useState(0);
-  const titles = useMemo(
-    () => ['amazing', 'new', 'wonderful', 'beautiful', 'smart'],
-    []
-  );
+  const titles = useMemo(() => ['FAST'], []);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -26,7 +21,7 @@ export const Hero5 = () => {
   return (
     <div className="w-full">
       <div className="container mx-auto">
-        <div className="flex flex-col items-center justify-center gap-8 py-20 lg:py-40">
+        <div className="flex flex-col items-center justify-center gap-8 py-10 lg:py-40">
           <div className="flex flex-col gap-4">
             <h1 className="font-regular max-w-2xl text-center text-5xl tracking-tighter md:text-7xl">
               <span className="text-spektr-cyan-50">This is something</span>
@@ -57,19 +52,17 @@ export const Hero5 = () => {
             </h1>
 
             <p className="max-w-2xl text-center text-lg leading-relaxed tracking-tight text-muted-foreground md:text-xl">
-              Managing a small business today is already tough. Avoid further
-              complications by ditching outdated, tedious trade methods. Our
-              goal is to streamline SMB trade, making it easier and faster than
-              ever.
+              Get your food fast and easy! Place your order in advance and savor
+              your meal without the delay!
             </p>
           </div>
           <div className="flex flex-row gap-3">
-            <Button size="lg" className="gap-4" variant="outline">
+            {/* <Button size="lg" className="gap-4" variant="outline">
               Jump on a call <PhoneCall className="h-4 w-4" />
             </Button>
             <Button size="lg" className="gap-4">
               Sign up here <MoveRight className="h-4 w-4" />
-            </Button>
+            </Button> */}
           </div>
         </div>
       </div>

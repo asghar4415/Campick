@@ -2,28 +2,29 @@
 
 import { useEffect, useState } from 'react';
 import { NavigationMenuDemo } from '@/components/navbar';
-import { tr } from 'date-fns/locale';
 import { Hero5 } from '@/components/hero';
+import { CTA1 } from '@/components/cta';
+import { Blog1 } from '@/components/blog1';
 
 export default function HomePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) {
-      setIsLoggedIn(true);
-    } else {
-      setIsLoggedIn(false);
-    }
+    setIsLoggedIn(!!token); // Simplified check
   }, []);
 
   return (
-    <div>
+    <div className="flex min-h-screen flex-col">
+      {' '}
+      {/* Added min-h-screen */}
       <NavigationMenuDemo isLoggedIn={isLoggedIn} />
-      <div className="container mx-auto px-4 py-8">
-        {/* <h1 className="text-4xl font-bold">Welcome to CamPick</h1>
-        <p className="mt-4 text-lg">Capture the moments that matter most.</p> */}
-        <Hero5 />
+      <div className="container mx-auto flex-1 overflow-auto px-4 py-8">
+        {' '}
+        {/* This should allow overflow */}
+        {/* <Hero5 /> */}
+        <CTA1 />
+        <Blog1 />
       </div>
     </div>
   );
