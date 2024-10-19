@@ -5,13 +5,16 @@ import { NavigationMenuDemo } from '@/components/navbar';
 import { Hero5 } from '@/components/hero';
 import { CTA1 } from '@/components/cta';
 import { Blog1 } from '@/components/blog1';
+import { ShopDisplay } from '@/components/shops';
+import { Footer1 } from '@/components/footer';
 
 export default function HomePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token); // Simplified check
+    // console.log('token', token);
+    setIsLoggedIn(!!token);
   }, []);
 
   return (
@@ -25,7 +28,9 @@ export default function HomePage() {
         {/* <Hero5 /> */}
         <CTA1 />
         <Blog1 />
+        <ShopDisplay />
       </div>
+      <Footer1 />
     </div>
   );
 }

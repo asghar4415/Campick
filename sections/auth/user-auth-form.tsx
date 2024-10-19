@@ -40,11 +40,19 @@ export default function UserAuthForm() {
         email: data.email,
         password: data.password
       });
-      console.log('Login response:', response.data);
-      console.log(response.data.message);
+      // console.log('Login response:', response.data);
+      // console.log(response.data.message);
 
-      if (response.data.message == 'Welcome back!') {
-        router.push('/dashboard'); // Navigate to the dashboard
+      if (
+        response.data.user_info.role == 'student' ||
+        response.data.user_info.role == 'teacher'
+      ) {
+        router.push('/');
+        localStorage.setItem('token', response.data.token);
+      }
+      if (response.data.user_info.role == 'shop_owner') {
+        router.push('/dashboard');
+        localStorage.setItem('token', response.data.token);
       } else if (response.status === 401) {
         alert('Login failed. Please check your credentials.');
       }
