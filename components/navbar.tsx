@@ -23,6 +23,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import MainLogoBlack from '@/public/black logo.png';
 import Image from 'next/image';
+import AdminSearch from '@/components/admin-search';
 
 interface NavigationMenuDemoProps {
   isLoggedIn: boolean;
@@ -73,6 +74,10 @@ export const NavigationMenuDemo = ({ isLoggedIn }: NavigationMenuDemoProps) => {
               ))}
             </NavigationMenuList>
           </NavigationMenu>
+
+          <div className="w-full flex-grow border lg:w-auto lg:flex-1">
+            <AdminSearch />
+          </div>
         </div>
 
         {/* Center Logo */}
