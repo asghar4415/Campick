@@ -4,7 +4,11 @@ import img1 from '@/public/img-1.png';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
-export const CTA1 = ({ shopsRef }) => {
+interface CTA1Props {
+  shopsRef: React.RefObject<HTMLDivElement>;
+}
+
+export const CTA1: React.FC<CTA1Props> = ({ shopsRef }) => {
   const router = useRouter();
 
   const handleAddToCart = () => {

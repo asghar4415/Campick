@@ -32,7 +32,7 @@ const menuItems = [
   }
 ];
 
-export const ShopDisplay = forwardRef((props, ref) => {
+export const MenuDisplay = forwardRef((props, ref) => {
   return (
     <div ref={ref} className="w-full py-10">
       <div className="container mx-auto">
@@ -62,4 +62,4 @@ export const ShopDisplay = forwardRef((props, ref) => {
 });
 
 // Adding display name for better debugging
-ShopDisplay.displayName = 'ShopDisplay';
+MenuDisplay.displayName = 'MenuDisplay'; // Correct this line

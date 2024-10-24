@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { NavigationMenuDemo } from '@/components/navbar';
 import { CTA1 } from '@/components/cta';
 import { Blog1 } from '@/components/shopdetails';
-import { ShopDisplay } from '@/components/shops';
+import { MenuDisplay } from '@/components/menuitems';
 import { Footer1 } from '@/components/footer';
 
 export default function HomePage() {
@@ -27,7 +27,7 @@ export default function HomePage() {
         {' '}
         <CTA1 shopsRef={shopsRef} />
         <Blog1 />
-        <ShopDisplay ref={shopsRef} />
+        <MenuDisplay ref={shopsRef} />
       </div>
       <Footer1 />
     </div>
