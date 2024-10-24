@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, Ref } from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL; // Remove if not used
 
@@ -32,7 +32,10 @@ const menuItems = [
   }
 ];
 
-export const MenuDisplay = forwardRef((props, ref) => {
+export const MenuDisplay = forwardRef<
+  HTMLDivElement,
+  React.HTMLProps<HTMLDivElement>
+>((props, ref: Ref<HTMLDivElement>) => {
   return (
     <div ref={ref} className="w-full py-10">
       <div className="container mx-auto">
