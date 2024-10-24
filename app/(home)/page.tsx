@@ -2,7 +2,6 @@
 import React, { useRef } from 'react';
 import { useEffect, useState } from 'react';
 import { NavigationMenuDemo } from '@/components/navbar';
-import { Hero5 } from '@/components/hero';
 import { CTA1 } from '@/components/cta';
 import { Blog1 } from '@/components/shopdetails';
 import { ShopDisplay } from '@/components/shops';

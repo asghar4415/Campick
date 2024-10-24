@@ -1,5 +1,3 @@
-import { MoveRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -7,7 +5,6 @@ import { useEffect, useState } from 'react';
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const Blog1 = () => {
-  const router = useRouter();
   const [shops, setShops] = useState([]);
 
   useEffect(() => {
