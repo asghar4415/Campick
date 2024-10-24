@@ -5,7 +5,12 @@ import { useEffect, useState } from 'react';
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const Blog1 = () => {
-  const [shops, setShops] = useState([]);
+  const [shops, setShops] = useState(
+    Array.from({ length: 4 }, () => ({
+      name: '',
+      description: ''
+    }))
+  );
 
   useEffect(() => {
     const fetchShops = async () => {
