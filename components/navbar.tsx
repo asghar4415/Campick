@@ -1,15 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Bell, CircleUser, MoveRight, X, Menu } from 'lucide-react';
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger
-} from '@/components/ui/navigation-menu';
+import { Bell, CircleUser, X, Menu, ShoppingCart } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +11,6 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import MainLogoBlack from '@/public/black logo.png';
 import Image from 'next/image';
@@ -28,8 +19,6 @@ import AdminSearch from '@/components/admin-search';
 interface NavigationMenuDemoProps {
   isLoggedIn: boolean;
 }
-
-const navigationItems = [{ title: 'Home', href: '/' }];
 
 export const NavigationMenuDemo = ({ isLoggedIn }: NavigationMenuDemoProps) => {
   const navigate = useRouter();
@@ -60,28 +49,16 @@ export const NavigationMenuDemo = ({ isLoggedIn }: NavigationMenuDemoProps) => {
       <div className="container relative mx-auto flex min-h-20 flex-row items-center gap-4 lg:grid lg:grid-cols-3">
         {/* Left Menu for large screens */}
         <div className="hidden flex-row items-center justify-start gap-4 lg:flex">
-          <NavigationMenu className="flex items-start justify-start">
-            <NavigationMenuList className="flex flex-row justify-start gap-4">
-              {navigationItems.map((item) => (
-                <NavigationMenuItem key={item.title}>
-                  <NavigationMenuLink
-                    href={item.href}
-                    className="rounded px-3 py-2 transition-colors duration-200 hover:bg-gray-100 hover:text-black"
-                  >
-                    {item.title}
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-              ))}
-            </NavigationMenuList>
-          </NavigationMenu>
-
           <div className="w-full flex-grow border lg:w-auto lg:flex-1">
             <AdminSearch />
           </div>
         </div>
 
-        {/* Center Logo */}
-        <div className="flex lg:justify-center">
+        {/* Center Logo (Single logo for all screens) */}
+        <div
+          className="flex w-full justify-center hover:cursor-pointer lg:w-auto"
+          onClick={() => navigate.push('/')}
+        >
           <Image
             src={MainLogoBlack}
             alt="CamPick Logo"
@@ -90,9 +67,12 @@ export const NavigationMenuDemo = ({ isLoggedIn }: NavigationMenuDemoProps) => {
           />
         </div>
 
-        {/* Right Section */}
-        <div className="flex w-full justify-end gap-4">
-          <div className="hidden border-r md:inline"></div>
+        {/* Right Section for Large Screens */}
+        <div className="hidden w-full justify-end gap-4 lg:flex">
+          {/* Add to Cart Button */}
+          <Button className="border-none" variant="ghost" size="sm">
+            <ShoppingCart className="h-5 w-5" />
+          </Button>
 
           {isLoggedIn ? (
             <>
@@ -137,27 +117,63 @@ export const NavigationMenuDemo = ({ isLoggedIn }: NavigationMenuDemoProps) => {
           )}
         </div>
 
-        {/* Mobile Menu Toggle */}
-        <div className="flex w-12 shrink items-end justify-end lg:hidden">
+        <div className="right flex w-auto items-center justify-end lg:hidden">
+          <Button className="border-none" variant="ghost" size="sm">
+            <ShoppingCart className="h-5 w-5" />
+          </Button>
+
           <Button variant="ghost" onClick={() => setOpen(!isOpen)}>
             {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
-          {isOpen && (
-            <div className="container absolute right-0 top-20 flex w-full flex-col gap-8 border-t bg-background py-4 shadow-lg">
-              {navigationItems.map((item) => (
-                <div key={item.title}>
-                  <Link
-                    href={item.href}
-                    className="flex items-center justify-between rounded px-3 py-2 transition-colors duration-200 hover:bg-gray-200 hover:text-black"
-                  >
-                    <span className="text-lg">{item.title}</span>
-                    <MoveRight className="h-4 w-4 stroke-1 text-muted-foreground" />
-                  </Link>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
+
+        {isOpen && (
+          <div className="absolute right-0 top-20 flex w-full flex-col gap-5 bg-background px-8 py-3 shadow-lg lg:hidden">
+            {isLoggedIn ? (
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="rounded-full"
+                    >
+                      <CircleUser className="h-5 w-5" />
+                      <span className="sr-only">Toggle user menu</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>Settings</DropdownMenuItem>
+                    <DropdownMenuItem>Support</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>Logout</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="rounded-full"
+                >
+                  <Bell className="h-5 w-5" />
+                  <span className="sr-only">Toggle notifications</span>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate.push('/signin')}
+                >
+                  Sign in
+                </Button>
+                <Button className="gap-3">Sign up</Button>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </header>
   );
