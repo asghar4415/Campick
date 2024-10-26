@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export const Blog1 = () => {
+export const Shops = () => {
   const [shops, setShops] = useState(
     Array.from({ length: 4 }, () => ({
       name: '',

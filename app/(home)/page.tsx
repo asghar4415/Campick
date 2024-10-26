@@ -3,7 +3,7 @@ import React, { useRef } from 'react';
 import { useEffect, useState } from 'react';
 import { NavigationMenuDemo } from '@/components/navbar';
 import { CTA1 } from '@/components/cta';
-import { Blog1 } from '@/components/shopdetails';
+import { Shops } from '@/components/shopdetails';
 import { MenuDisplay } from '@/components/menuitems';
 import { Footer1 } from '@/components/footer';
 
@@ -26,7 +26,7 @@ export default function HomePage() {
       <div className="container mx-auto flex-1 overflow-auto px-4 py-8">
         {' '}
         <CTA1 shopsRef={shopsRef} />
-        <Blog1 />
+        <Shops />
         <MenuDisplay ref={shopsRef} />
       </div>
       <Footer1 />
