@@ -1,10 +1,8 @@
-import { AreaGraph } from '../area-graph';
+'use client';
+
 import { BarGraph } from '../bar-graph';
-import { PieGraph } from '../pie-graph';
-import { CalendarDateRangePicker } from '@/components/date-range-picker';
 import PageContainer from '@/components/layout/page-container';
 import { RecentSales } from '../recent-sales';
-import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -13,27 +11,60 @@ import {
   CardTitle
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function OverViewPage() {
+  const [data, setData] = useState({
+    id: null,
+    user_name: '',
+    email: ''
+  });
+
+  useEffect(() => {
+    async function getShopOwnerData() {
+      try {
+        const token = localStorage.getItem('token'); // Retrieve token from localStorage
+        const response = await axios.get(`${API_URL}/api/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}` // Add token to headers
+          }
+        });
+        setData({
+          id: response.data.id,
+          user_name: response.data.user_name,
+          email: response.data.email
+        });
+        // console.log(response.data);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    getShopOwnerData();
+  }, []);
+
   return (
     <PageContainer scrollable={true}>
       <div className="space-y-2">
         <div className="flex items-center justify-between space-y-2">
           <h2 className="text-2xl font-bold tracking-tight">
-            Hi, Welcome back 👋
+            Hi, {data.user_name}
           </h2>
           <div className="hidden items-center space-x-2 md:flex">
-            <CalendarDateRangePicker />
-            <Button>Download</Button>
+            {/* <CalendarDateRangePicker />  */}
+            {/* <Button>Download</Button> */}
           </div>
         </div>
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
+          {/* <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="analytics" disabled>
               Analytics
             </TabsTrigger>
-          </TabsList>
+          </TabsList> */}
+
           <TabsContent value="overview" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <Card>
@@ -153,12 +184,12 @@ export default function OverViewPage() {
                   <RecentSales />
                 </CardContent>
               </Card>
-              <div className="col-span-4">
+              {/* <div className="col-span-4">
                 <AreaGraph />
-              </div>
-              <div className="col-span-4 md:col-span-3">
+              </div> */}
+              {/* <div className="col-span-4 md:col-span-3">
                 <PieGraph />
-              </div>
+              </div> */}
             </div>
           </TabsContent>
         </Tabs>

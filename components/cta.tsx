@@ -17,8 +17,8 @@ export const CTA1: React.FC<CTA1Props> = ({ shopsRef }) => {
     }
   };
 
-  const gotologinpage = () => {
-    router.push('/signin');
+  const gotosignuppage = () => {
+    router.push('/signup');
   };
 
   return (
@@ -46,7 +46,7 @@ export const CTA1: React.FC<CTA1Props> = ({ shopsRef }) => {
               </Button>
               <Button
                 className="w-full gap-4 md:w-auto"
-                onClick={() => gotologinpage()}
+                onClick={() => gotosignuppage()}
               >
                 Are you a shop owner? <MoveRight className="h-4 w-4" />
               </Button>

@@ -5,16 +5,54 @@ import { NavigationMenuDemo } from '@/components/navbar';
 import { CTA1 } from '@/components/cta';
 import { Shops } from '@/components/shopdetails';
 import { MenuDisplay } from '@/components/menuitems';
+import { useRouter } from 'next/navigation';
+
 import { Footer1 } from '@/components/footer';
 
 export default function HomePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [data, setData] = useState({
+    email: '',
+    id: null,
+    role: ''
+  });
 
+  const router = useRouter();
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    // console.log('token', token);
-    setIsLoggedIn(!!token);
-  }, []);
+    async function authenticatiocheck() {
+      const token = localStorage.getItem('token');
+      let parsedToken = null;
+
+      if (token) {
+        try {
+          const payload = token.split('.')[1];
+          parsedToken = JSON.parse(atob(payload));
+          setData({
+            email: parsedToken.email,
+            id: parsedToken.id,
+            role: parsedToken.role
+          });
+
+          // Handle routing immediately
+          if (parsedToken.role === 'shop_owner') {
+            router.push('/dashboard');
+          } else if (
+            parsedToken.role === 'student' ||
+            parsedToken.role === 'teacher'
+          ) {
+            setIsLoggedIn(true);
+          }
+        } catch (error) {
+          console.error('Error decoding the token:', error);
+          parsedToken = token;
+        }
+      } else {
+        setIsLoggedIn(false);
+      }
+    }
+
+    authenticatiocheck();
+  }, [router]);
 
   const shopsRef = useRef(null);
 

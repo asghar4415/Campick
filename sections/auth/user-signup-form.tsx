@@ -47,7 +47,7 @@ export default function UserSignupForm() {
 
       if (response.status === 201 || response.status === 200) {
         alert('Signup successful. Please login to continue.');
-        router.push('/');
+        router.push('/signin');
       } else if (response.status === 401 || response.status === 400) {
         alert('Signup failed. Please check your credentials.');
       }

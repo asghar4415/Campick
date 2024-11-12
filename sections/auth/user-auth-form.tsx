@@ -57,7 +57,7 @@ export default function UserAuthForm() {
         alert('Login failed. Please check your credentials.');
       }
     } catch (error) {
-      // console.error('Login error:', error);
+      console.error('Login error:', error);
       alert('Login failed. Please check your credentials.');
     }
   };

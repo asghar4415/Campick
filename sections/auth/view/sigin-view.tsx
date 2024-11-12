@@ -31,11 +31,16 @@ export default function SignInViewPage() {
         </div>
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
+            <h2>
+              "First time here? Students, please log in using Google to get
+              started."
+            </h2>
+            <br />
             <p className="text-lg">
-              Welcome to CamPick! Sign up or log in to manage your shop, track
-              orders, confirm payments, and keep your customers happy with fast,
-              seamless service. Stay in control of your business, all from one
-              convenient platform.
+              Welcome to CamPick! Sign up or log in to explore products, manage
+              orders, and enjoy a seamless shopping experience. Whether you’re a
+              customer looking to shop or a shop owner managing your business,
+              our platform provides all you need in one convenient place.
             </p>
           </blockquote>
         </div>

@@ -33,10 +33,10 @@ export default function SignUpViewPage() {
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
             <p className="text-lg">
-              Welcome to the Shop Owner Portal of CamPick! Sign up or log in to
-              manage your shop, track orders, confirm payments, and keep your
-              customers happy with fast, seamless service. Stay in control of
-              your business, all from one convenient platform.
+              Welcome to CamPick! Sign up to manage your shop, track orders,
+              confirm payments, and keep your customers happy with fast,
+              seamless service. Stay in control of your business, all from one
+              convenient platform.
             </p>
           </blockquote>
         </div>
