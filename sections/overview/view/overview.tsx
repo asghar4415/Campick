@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 
@@ -22,14 +22,58 @@ export default function OverViewPage() {
     user_name: '',
     email: ''
   });
+  const [dashboardData, setDashboardData] = useState({
+    revenue: 0,
+    shopDetails: [],
+    recentOrders: []
+  });
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const shopsResponse = await axios.get(`${API_URL}/api/ownerShops`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        const shops = shopsResponse.data.shops;
+
+        if (shops.length > 0) {
+          const shopId = shops[0].id;
+          const dashboardResponse = await axios.get(
+            `${API_URL}/api/shopDashboard/${shopId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
+            }
+          );
+          console.log(dashboardResponse.data);
+          setDashboardData({
+            revenue: dashboardResponse.data.revenue,
+            shopDetails: shops,
+            recentOrders: dashboardResponse.data.recentOrders
+          });
+        } else {
+          setError('No shops found for this owner.');
+        }
+      } catch (error) {
+        setError('Failed to fetch dashboard data. Please try again.');
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
 
   useEffect(() => {
     async function getShopOwnerData() {
       try {
-        const token = localStorage.getItem('token'); // Retrieve token from localStorage
+        const token = localStorage.getItem('token');
         const response = await axios.get(`${API_URL}/api/profile`, {
           headers: {
-            Authorization: `Bearer ${token}` // Add token to headers
+            Authorization: `Bearer ${token}`
           }
         });
         setData({
@@ -37,13 +81,22 @@ export default function OverViewPage() {
           user_name: response.data.user_name,
           email: response.data.email
         });
-        // console.log(response.data);
       } catch (error) {
         console.error(error);
       }
     }
     getShopOwnerData();
   }, []);
+
+  if (error) {
+    return (
+      <PageContainer scrollable={true}>
+        <div className="flex h-screen items-center justify-center">
+          <h2 className="text-2xl font-semibold text-red-600">{error}</h2>
+        </div>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer scrollable={true}>
@@ -52,19 +105,8 @@ export default function OverViewPage() {
           <h2 className="text-2xl font-bold tracking-tight">
             Hi, {data.user_name}
           </h2>
-          <div className="hidden items-center space-x-2 md:flex">
-            {/* <CalendarDateRangePicker />  */}
-            {/* <Button>Download</Button> */}
-          </div>
         </div>
         <Tabs defaultValue="overview" className="space-y-4">
-          {/* <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics" disabled>
-              Analytics
-            </TabsTrigger>
-          </TabsList> */}
-
           <TabsContent value="overview" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <Card>
@@ -72,21 +114,11 @@ export default function OverViewPage() {
                   <CardTitle className="text-sm font-medium">
                     Total Revenue
                   </CardTitle>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    className="h-4 w-4 text-muted-foreground"
-                  >
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                  </svg>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">$45,231.89</div>
+                  <div className="text-2xl font-bold">
+                    Rs. {dashboardData.revenue}
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     +20.1% from last month
                   </p>
@@ -97,20 +129,6 @@ export default function OverViewPage() {
                   <CardTitle className="text-sm font-medium">
                     Subscriptions
                   </CardTitle>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    className="h-4 w-4 text-muted-foreground"
-                  >
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-                  </svg>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">+2350</div>
@@ -122,49 +140,11 @@ export default function OverViewPage() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Sales</CardTitle>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    className="h-4 w-4 text-muted-foreground"
-                  >
-                    <rect width="20" height="14" x="2" y="5" rx="2" />
-                    <path d="M2 10h20" />
-                  </svg>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">+12,234</div>
                   <p className="text-xs text-muted-foreground">
                     +19% from last month
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Active Now
-                  </CardTitle>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    className="h-4 w-4 text-muted-foreground"
-                  >
-                    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                  </svg>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">+573</div>
-                  <p className="text-xs text-muted-foreground">
-                    +201 since last hour
                   </p>
                 </CardContent>
               </Card>
@@ -184,12 +164,6 @@ export default function OverViewPage() {
                   <RecentSales />
                 </CardContent>
               </Card>
-              {/* <div className="col-span-4">
-                <AreaGraph />
-              </div> */}
-              {/* <div className="col-span-4 md:col-span-3">
-                <PieGraph />
-              </div> */}
             </div>
           </TabsContent>
         </Tabs>

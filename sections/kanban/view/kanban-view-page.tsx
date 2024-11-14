@@ -1,3 +1,5 @@
+'use client';
+
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { AllShops } from '../kanban-board';
 import PageContainer from '@/components/layout/page-container';
@@ -15,8 +17,8 @@ export default function KanbanViewPage() {
         <Breadcrumbs items={breadcrumbItems} />
         <div className="flex items-start justify-between">
           <Heading
-            title={`Shops`}
-            description="Manage your shops and their menu items."
+            title={`Shop Details`}
+            description="Manage your shop and their menu items."
           />
         </div>
         <br />
