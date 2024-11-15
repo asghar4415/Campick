@@ -124,31 +124,31 @@ export type Product = {
 export const navItems: NavItem[] = [
   {
     title: 'Dashboard',
-    href: '/dashboard',
+    href: '/shopdashboard',
     icon: 'dashboard',
     label: 'Dashboard'
   },
   {
     title: 'Employee',
-    href: '/dashboard/employee',
+    href: '/shopdashboard/employee',
     icon: 'user',
     label: 'employee'
   },
   {
     title: 'Product',
-    href: '/dashboard/product',
+    href: '/shopdashboard/product',
     icon: 'product',
     label: 'product'
   },
   {
     title: 'Profile',
-    href: '/dashboard/profile',
+    href: '/shopdashboard/profile',
     icon: 'userPen',
     label: 'Profile'
   },
   {
     title: 'Shops',
-    href: '/dashboard/shops',
+    href: '/shopdashboard/shops',
     icon: 'kanban',
     label: 'Shops'
   },

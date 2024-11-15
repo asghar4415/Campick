@@ -35,26 +35,28 @@ export default function UserAuthForm() {
 
   const onSubmit = async (data: UserFormValue) => {
     try {
-      // console.log('Login data:', data);
       const response = await axios.post(`${API_URL}/api/signin`, {
         email: data.email,
         password: data.password
       });
-      // console.log('Login response:', response.data);
-      // console.log(response.data.message);
+      console.log('Login response:', response.data);
 
-      if (
-        response.data.user_info.role == 'student' ||
-        response.data.user_info.role == 'teacher'
+      // Store the token regardless of the role
+      localStorage.setItem('token', response.data.token);
+
+      // Check the role and redirect accordingly
+      if (response.data.user_info.role === 'shop_owner') {
+        console.log('Redirecting to dashboard');
+        router.push('/shopdashboard');
+      } else if (
+        response.data.user_info.role === 'student' ||
+        response.data.user_info.role === 'teacher'
       ) {
+        console.log('Redirecting to home page');
         router.push('/');
-        localStorage.setItem('token', response.data.token);
-      }
-      if (response.data.user_info.role == 'shop_owner') {
-        router.push('/dashboard');
-        localStorage.setItem('token', response.data.token);
-      } else if (response.status === 401) {
-        alert('Login failed. Please check your credentials.');
+      } else {
+        console.error('Unexpected role or condition');
+        alert('Unexpected error occurred.');
       }
     } catch (error) {
       console.error('Login error:', error);

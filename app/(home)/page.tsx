@@ -32,13 +32,14 @@ export default function HomePage() {
             id: parsedToken.id,
             role: parsedToken.role
           });
+          // console.log('Decoded token:', parsedToken);
 
           // Handle routing immediately
-          if (parsedToken.role === 'shop_owner') {
-            router.push('/dashboard');
+          if (parsedToken.role == 'shop_owner') {
+            router.push('/shopdashboard');
           } else if (
-            parsedToken.role === 'student' ||
-            parsedToken.role === 'teacher'
+            parsedToken.role == 'student' ||
+            parsedToken.role == 'teacher'
           ) {
             setIsLoggedIn(true);
           }

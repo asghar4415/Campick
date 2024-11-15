@@ -28,16 +28,24 @@ export default function OverViewPage() {
     recentOrders: []
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('No token found. Please login.');
+        setLoading(false);
+        return;
+      }
+
       try {
-        const token = localStorage.getItem('token');
         const shopsResponse = await axios.get(`${API_URL}/api/ownerShops`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
+        console.log('Shops response:', shopsResponse.data);
         const shops = shopsResponse.data.shops;
 
         if (shops.length > 0) {
@@ -50,7 +58,7 @@ export default function OverViewPage() {
               }
             }
           );
-          console.log(dashboardResponse.data);
+          console.log('Dashboard response:', dashboardResponse.data);
           setDashboardData({
             revenue: dashboardResponse.data.revenue,
             shopDetails: shops,
@@ -59,38 +67,47 @@ export default function OverViewPage() {
         } else {
           setError('No shops found for this owner.');
         }
-      } catch (error) {
-        setError('Failed to fetch dashboard data. Please try again.');
-      }
-    };
 
-    fetchDashboardData();
-  }, []);
-
-  useEffect(() => {
-    async function getShopOwnerData() {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`${API_URL}/api/profile`, {
+        const profileResponse = await axios.get(`${API_URL}/api/profile`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
+        console.log('Profile response:', profileResponse.data);
         setData({
-          id: response.data.id,
-          user_name: response.data.user_name,
-          email: response.data.email
+          id: profileResponse.data.id,
+          user_name: profileResponse.data.user_name,
+          email: profileResponse.data.email
         });
       } catch (error) {
-        console.error(error);
+        setError('Failed to fetch data. Please try again.');
+      } finally {
+        setLoading(false);
       }
-    }
-    getShopOwnerData();
-  }, []);
+    };
+
+    fetchDashboardData();
+  }, []); // Run once when the component mounts
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-16 w-16 animate-spin rounded-full border-b-4 border-t-4 border-blue-500"></div>
+          <h2 className="text-2xl font-semibold">Loading</h2>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
-      <PageContainer scrollable={true}>
+      <PageContainer scrollable={false}>
+        <div className="flex items-center justify-between space-y-2">
+          <h2 className="text-2xl font-bold tracking-tight">
+            Hi, {data.user_name}
+          </h2>
+        </div>
         <div className="flex h-screen items-center justify-center">
           <h2 className="text-2xl font-semibold text-red-600">{error}</h2>
         </div>

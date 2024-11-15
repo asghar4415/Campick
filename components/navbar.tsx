@@ -40,6 +40,12 @@ export const NavigationMenuDemo = ({ isLoggedIn }: NavigationMenuDemoProps) => {
     };
   }, []);
 
+  const userLoggingout = () => {
+    localStorage.removeItem('token');
+    navigate.push('/');
+    window.location.reload();
+  };
+
   return (
     <header
       className={`fixed left-0 top-0 z-40 w-full bg-background transition-shadow duration-300 ${
@@ -94,7 +100,13 @@ export const NavigationMenuDemo = ({ isLoggedIn }: NavigationMenuDemoProps) => {
                   <DropdownMenuItem>Settings</DropdownMenuItem>
                   <DropdownMenuItem>Support</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Logout</DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      userLoggingout();
+                    }}
+                  >
+                    Logout
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
@@ -148,7 +160,14 @@ export const NavigationMenuDemo = ({ isLoggedIn }: NavigationMenuDemoProps) => {
                     <DropdownMenuItem>Settings</DropdownMenuItem>
                     <DropdownMenuItem>Support</DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>Logout</DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={() => {
+                        userLoggingout();
+                      }}
+                    >
+                      Logout
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
 
