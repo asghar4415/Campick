@@ -4,10 +4,6 @@ export const metadata = {
   title: 'Dashboard : Shop owner'
 };
 
-export default function DashboardLayout({
-  children
-}: {
-  children: React.ReactNode;
-}) {
+export function DashboardLayout({ children }: { children: React.ReactNode }) {
   return <OverViewPageView />;
 }
