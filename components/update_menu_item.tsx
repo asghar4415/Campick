@@ -101,7 +101,7 @@ export function UpdateMenuItem({
           <DialogTitle>Update Item</DialogTitle>
           <DialogDescription>
             Update your Menu item details here. Click &quot;Save&quot; when
-            you're done.
+            you&apos;re done.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
