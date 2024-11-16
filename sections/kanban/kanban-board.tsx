@@ -5,19 +5,13 @@ import { BoardContainer, BoardColumn } from './board-column';
 import NewSectionDialog from './new-section-dialog';
 
 export function AllShops() {
-  const columns = useTaskStore((state) => state.columns);
-  const setColumns = useTaskStore((state) => state.setCols);
-  const tasks = useTaskStore((state) => state.tasks);
-  const setTasks = useTaskStore((state) => state.setTasks);
+  const { tasks, columns, addTask, removeTask, addColumn, updateColumn } =
+    useTaskStore();
 
   const [isMounted, setIsMounted] = useState<boolean>(false);
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    useTaskStore.persist.rehydrate();
   }, []);
 
   if (!isMounted) return null;

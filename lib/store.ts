@@ -1,19 +1,13 @@
-import { create } from 'zustand';
+import { useReducer } from 'react';
 import { v4 as uuid } from 'uuid';
-import { persist } from 'zustand/middleware';
-import { Column } from '@/sections/kanban/board-column';
 import { UniqueIdentifier } from '@dnd-kit/core';
 
 export type Status = 'TODO' | 'IN_PROGRESS' | 'DONE';
 
-const defaultCols = [
-  {
-    id: 'TODO' as const,
-    title: 'Todo'
-  }
-] satisfies Column[];
-
-export type ColumnId = (typeof defaultCols)[number]['id'];
+export type Column = {
+  id: UniqueIdentifier;
+  title: string;
+};
 
 export type Task = {
   id: string;
@@ -22,74 +16,103 @@ export type Task = {
   status: Status;
 };
 
-export type State = {
+type State = {
   tasks: Task[];
   columns: Column[];
   draggedTask: string | null;
 };
 
-const initialTasks: Task[] = [
-  {
-    id: 'task1',
-    status: 'TODO',
-    title: 'Project initiation and planning'
-  },
-  {
-    id: 'task2',
-    status: 'TODO',
-    title: 'Gather requirements from stakeholders'
-  }
-];
+type Action =
+  | { type: 'ADD_TASK'; title: string; description?: string }
+  | { type: 'REMOVE_TASK'; id: string }
+  | { type: 'ADD_COLUMN'; title: string }
+  | { type: 'UPDATE_COLUMN'; id: UniqueIdentifier; newName: string }
+  | { type: 'REMOVE_COLUMN'; id: UniqueIdentifier }
+  | { type: 'DRAG_TASK'; id: string | null }
+  | { type: 'SET_TASKS'; tasks: Task[] }
+  | { type: 'SET_COLUMNS'; columns: Column[] };
 
-export type Actions = {
-  addTask: (title: string, description?: string) => void;
-  addCol: (title: string) => void;
-  dragTask: (id: string | null) => void;
-  removeTask: (title: string) => void;
-  removeCol: (id: UniqueIdentifier) => void;
-  setTasks: (updatedTask: Task[]) => void;
-  setCols: (cols: Column[]) => void;
-  updateCol: (id: UniqueIdentifier, newName: string) => void;
+const initialState: State = {
+  tasks: [
+    { id: 'task1', status: 'TODO', title: 'Project initiation and planning' },
+    {
+      id: 'task2',
+      status: 'TODO',
+      title: 'Gather requirements from stakeholders'
+    }
+  ],
+  columns: [{ id: 'TODO', title: 'Todo' }],
+  draggedTask: null
 };
 
-export const useTaskStore = create<State & Actions>()(
-  persist(
-    (set) => ({
-      tasks: initialTasks,
-      columns: defaultCols,
-      draggedTask: null,
-      addTask: (title: string, description?: string) =>
-        set((state) => ({
-          tasks: [
-            ...state.tasks,
-            { id: uuid(), title, description, status: 'TODO' }
-          ]
-        })),
-      updateCol: (id: UniqueIdentifier, newName: string) =>
-        set((state) => ({
-          columns: state.columns.map((col) =>
-            col.id === id ? { ...col, title: newName } : col
-          )
-        })),
-      addCol: (title: string) =>
-        set((state) => ({
-          columns: [
-            ...state.columns,
-            { title, id: state.columns.length ? title.toUpperCase() : 'TODO' }
-          ]
-        })),
-      dragTask: (id: string | null) => set({ draggedTask: id }),
-      removeTask: (id: string) =>
-        set((state) => ({
-          tasks: state.tasks.filter((task) => task.id !== id)
-        })),
-      removeCol: (id: UniqueIdentifier) =>
-        set((state) => ({
-          columns: state.columns.filter((col) => col.id !== id)
-        })),
-      setTasks: (newTasks: Task[]) => set({ tasks: newTasks }),
-      setCols: (newCols: Column[]) => set({ columns: newCols })
-    }),
-    { name: 'task-store', skipHydration: true }
-  )
-);
+function taskReducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'ADD_TASK':
+      return {
+        ...state,
+        tasks: [
+          ...state.tasks,
+          {
+            id: uuid(),
+            title: action.title,
+            description: action.description,
+            status: 'TODO'
+          }
+        ]
+      };
+    case 'REMOVE_TASK':
+      return {
+        ...state,
+        tasks: state.tasks.filter((task) => task.id !== action.id)
+      };
+    case 'ADD_COLUMN':
+      return {
+        ...state,
+        columns: [
+          ...state.columns,
+          { id: action.title.toUpperCase(), title: action.title }
+        ]
+      };
+    case 'UPDATE_COLUMN':
+      return {
+        ...state,
+        columns: state.columns.map((col) =>
+          col.id === action.id ? { ...col, title: action.newName } : col
+        )
+      };
+    case 'REMOVE_COLUMN':
+      return {
+        ...state,
+        columns: state.columns.filter((col) => col.id !== action.id)
+      };
+    case 'DRAG_TASK':
+      return { ...state, draggedTask: action.id };
+    case 'SET_TASKS':
+      return { ...state, tasks: action.tasks };
+    case 'SET_COLUMNS':
+      return { ...state, columns: action.columns };
+    default:
+      return state;
+  }
+}
+
+export function useTaskStore() {
+  const [state, dispatch] = useReducer(taskReducer, initialState);
+
+  const actions = {
+    addTask: (title: string, description?: string) =>
+      dispatch({ type: 'ADD_TASK', title, description }),
+    removeTask: (id: string) => dispatch({ type: 'REMOVE_TASK', id }),
+    addColumn: (title: string) => dispatch({ type: 'ADD_COLUMN', title }),
+    updateColumn: (id: UniqueIdentifier, newName: string) =>
+      dispatch({ type: 'UPDATE_COLUMN', id, newName }),
+    removeColumn: (id: UniqueIdentifier) =>
+      dispatch({ type: 'REMOVE_COLUMN', id }),
+    dragTask: (id: string | null) => dispatch({ type: 'DRAG_TASK', id }),
+    setTasks: (tasks: Task[]) => dispatch({ type: 'SET_TASKS', tasks }),
+    setColumns: (columns: Column[]) =>
+      dispatch({ type: 'SET_COLUMNS', columns })
+  };
+
+  return { ...state, ...actions };
+}

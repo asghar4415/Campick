@@ -1,7 +1,6 @@
 'use client';
 
 import { Icons } from '@/components/icons';
-import { useSidebar } from '@/hooks/useSidebar';
 import { cn } from '@/lib/utils';
 import { NavItem } from '@/types';
 import Link from 'next/link';
@@ -13,6 +12,7 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from './ui/tooltip';
+import { useState } from 'react';
 
 interface DashboardNavProps {
   items: NavItem[];
@@ -26,7 +26,7 @@ export function DashboardNav({
   isMobileNav = false
 }: DashboardNavProps) {
   const path = usePathname();
-  const { isMinimized } = useSidebar();
+  const [isMinimized, setIsMinimized] = useState(false);
 
   if (!items?.length) {
     return null;

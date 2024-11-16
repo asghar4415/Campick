@@ -4,7 +4,6 @@ import Header from '@/components/layout/header';
 import Sidebar from '@/components/layout/sidebar';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { OverViewPageView } from '@/sections/overview/view';
 
 export default function DashboardLayout({
   children
