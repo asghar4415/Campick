@@ -75,10 +75,7 @@ export default function KanbanViewPage() {
           />
         </div>
         <br />
-        {
-          // (shopExists) ? <AllShops/> : <p>{error}</p>
-        }
-        <AllShops />
+        <AllShops shopExists={shopExists} />
       </div>
     </PageContainer>
   );
