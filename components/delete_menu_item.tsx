@@ -8,8 +8,6 @@ import {
   DialogTitle,
   DialogTrigger
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import axios from 'axios';
 import { useState } from 'react';
 
@@ -35,7 +33,7 @@ export function DeleteItem({
         return;
       }
 
-      const response = await axios.delete(
+      await axios.delete(
         `${API_URL}/api/shop/${shopId}/deleteMenuItem/${itemId}`,
         {
           headers: {

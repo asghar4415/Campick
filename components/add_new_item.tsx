@@ -43,7 +43,7 @@ export function AddNewMenuItem({ shopId }: { shopId: string }) {
         return;
       }
 
-      const response = await axios.post(
+      await axios.post(
         `${API_URL}/api/shop/${shopId}/addMenuItem`,
         newMenuItem,
         {

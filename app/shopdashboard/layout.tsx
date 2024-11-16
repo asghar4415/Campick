@@ -3,7 +3,7 @@
 import Header from '@/components/layout/header';
 import Sidebar from '@/components/layout/sidebar';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 export default function DashboardLayout({
   children
