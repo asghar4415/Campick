@@ -64,7 +64,7 @@ export function UpdateMenuItem({
         return;
       }
       // console.log('editingMenuItem:', editingMenuItem);
-      const response = await axios.put(
+      await axios.put(
         `${API_URL}/api/shop/${shopId}/updateMenuItem/${editingMenuItem.id}`,
         editingMenuItem,
         {
@@ -100,7 +100,8 @@ export function UpdateMenuItem({
         <DialogHeader>
           <DialogTitle>Update Item</DialogTitle>
           <DialogDescription>
-            Update your Menu item details here. Click "Save" when you're done.
+            Update your Menu item details here. Click &quot;Save&quot; when
+            you're done.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">

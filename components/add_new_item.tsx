@@ -79,7 +79,7 @@ export function AddNewMenuItem({ shopId }: { shopId: string }) {
         <DialogHeader>
           <DialogTitle>Add Item</DialogTitle>
           <DialogDescription>
-            Add your new Menu item here. Click "Add" when you're done.
+            Add your new Menu item here. Click &quot;Add&quot; when you're done.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
