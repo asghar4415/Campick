@@ -37,7 +37,6 @@ export function UpdateMenuItem({
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
 
-  // Update editingMenuItem state whenever menuItem prop changes
   useEffect(() => {
     setEditingMenuItem({
       id: menuItem.item_id,

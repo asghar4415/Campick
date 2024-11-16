@@ -33,7 +33,7 @@ export default function KanbanViewPage() {
             Authorization: `Bearer ${token}`
           }
         });
-        console.log('Shops response:', shopsResponse.data);
+        // console.log('Shops response:', shopsResponse.data);
         const shops = shopsResponse.data.shops;
 
         if (shops.length > 0) {

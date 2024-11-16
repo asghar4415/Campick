@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useState } from 'react';
 import NewSectionDialog from './new-section-dialog';
+import EditShopDetails from './edit-shop-details';
 import shopImg from '@/public/shopimg.avif';
 import axios from 'axios';
 import { AddNewMenuItem } from '@/components/add_new_item';
@@ -74,7 +75,6 @@ export function AllShops({ shopExists }: { shopExists: boolean }) {
               }
             }
           );
-          // console.log('shopDetailsResponse:', shopDetailsResponse.data);
 
           setShopData({
             name: shopDetailsResponse.data.name,
@@ -110,6 +110,11 @@ export function AllShops({ shopExists }: { shopExists: boolean }) {
     fetchShopData();
   }, [isMounted]);
 
+  // const editShopDetails = () => {
+  //   setisShopEdit(true);
+
+  // };
+
   if (!isMounted) return null;
 
   if (loading) {
@@ -129,7 +134,7 @@ export function AllShops({ shopExists }: { shopExists: boolean }) {
       {shopExists ? (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Left Column - Shop Details */}
-          <div className="flex flex-col items-center rounded-lg bg-white p-6 shadow-lg">
+          <div className="relative flex flex-col items-center rounded-lg bg-white p-6 shadow-lg">
             <Image
               src={shopData?.image_url || shopImg}
               alt={shopData?.name || 'Shop Image'}
@@ -168,6 +173,11 @@ export function AllShops({ shopExists }: { shopExists: boolean }) {
                 <span className="font-medium">Payment Details:</span>
                 <span>{shopData?.payment_details}</span>
               </div>
+            </div>
+
+            {/* Edit Icon */}
+            <div className="absolute right-2 top-2">
+              <EditShopDetails shopId={shopId} shopData={shopData} />
             </div>
           </div>
 
