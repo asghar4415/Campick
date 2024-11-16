@@ -1,21 +1,13 @@
-// Add 'use client' directive to ensure this component is only rendered on the client-side.
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 
-export default function GoogleSignInButton() {
-  const [callbackUrl, setCallbackUrl] = useState<string | null>(null);
+function GoogleSignInButtonComponent() {
   const searchParams = useSearchParams();
-
-  useEffect(() => {
-    // Get callbackUrl from the search params when the component is mounted (client-side).
-    const url = searchParams.get('callbackUrl');
-    setCallbackUrl(url);
-  }, [searchParams]);
+  const callbackUrl = searchParams.get('callbackUrl');
 
   return (
     <Button
@@ -30,4 +22,8 @@ export default function GoogleSignInButton() {
       Continue with Google
     </Button>
   );
+}
+
+export default function GoogleSignInButton() {
+  return <GoogleSignInButtonComponent />;
 }
