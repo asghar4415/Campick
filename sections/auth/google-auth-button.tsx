@@ -1,11 +1,12 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 
-export default function GoogleSignInButton() {
+function GoogleSignInButtonComponent() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl');
 
@@ -21,5 +22,13 @@ export default function GoogleSignInButton() {
       <Icons.google className="mr-2 h-4 w-4" />
       Continue with Google
     </Button>
+  );
+}
+
+export default function GoogleSignInButton() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <GoogleSignInButtonComponent />
+    </Suspense>
   );
 }
