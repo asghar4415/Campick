@@ -11,12 +11,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const [shopOwnerLoggedin, setShopOwnerLoggedin] = useState(false);
-  const [data, setData] = useState({
-    email: '',
-    id: null,
-    role: ''
-  });
+  // const [shopOwnerLoggedin, setShopOwnerLoggedin] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -31,15 +26,9 @@ export default function DashboardLayout({
       const payload = token.split('.')[1]; // Extract payload from JWT
       const parsedToken = JSON.parse(atob(payload)); // Decode payload
 
-      setData({
-        email: parsedToken.email,
-        id: parsedToken.id,
-        role: parsedToken.role
-      });
-
-      // Check if the user is a shop owner
       if (parsedToken.role === 'shop_owner') {
-        setShopOwnerLoggedin(true);
+        console.log('Shop owner logged in');
+        // setShopOwnerLoggedin(true);
       } else {
         router.push('/'); // Redirect non-shop owners to home
       }

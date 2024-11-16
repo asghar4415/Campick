@@ -1,11 +1,11 @@
 'use client';
 
-import React, { forwardRef, useEffect, useState, Ref } from 'react';
+import React, { forwardRef, useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
 import { ToastAction } from '@/components/ui/toast';
+import Image from 'next/image';
 
 export const MenuDisplay = forwardRef<
   HTMLDivElement,
@@ -103,9 +103,11 @@ export const MenuDisplay = forwardRef<
               >
                 <div className="mb-2 aspect-video rounded-md">
                   {item.image && (
-                    <img
+                    <Image
                       src={item.image}
                       alt={item.name}
+                      width={500}
+                      height={300}
                       className="rounded-md"
                     />
                   )}

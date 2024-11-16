@@ -11,11 +11,6 @@ import { Footer1 } from '@/components/footer';
 
 export default function HomePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [data, setData] = useState({
-    email: '',
-    id: null,
-    role: ''
-  });
 
   const router = useRouter();
   useEffect(() => {
@@ -27,12 +22,6 @@ export default function HomePage() {
         try {
           const payload = token.split('.')[1];
           parsedToken = JSON.parse(atob(payload));
-          setData({
-            email: parsedToken.email,
-            id: parsedToken.id,
-            role: parsedToken.role
-          });
-          // console.log('Decoded token:', parsedToken);
 
           // Handle routing immediately
           if (parsedToken.role == 'shop_owner') {

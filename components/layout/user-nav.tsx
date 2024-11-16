@@ -15,8 +15,6 @@ import {
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 export default function UserNav() {
   const router = useRouter();
   const [data, setData] = useState({
