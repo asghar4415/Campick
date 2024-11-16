@@ -17,7 +17,6 @@ const breadcrumbItems = [
 
 export default function KanbanViewPage() {
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
   const [shopExists, setShopExists] = useState(false);
 
   useEffect(() => {
@@ -25,7 +24,6 @@ export default function KanbanViewPage() {
       const token = localStorage.getItem('token');
       if (!token) {
         setError('No token found. Please login.');
-        setLoading(false);
         return;
       }
 
@@ -46,23 +44,10 @@ export default function KanbanViewPage() {
         }
       } catch (error) {
         setError('Failed to fetch data. Please try again.');
-      } finally {
-        setLoading(false);
       }
     };
     fetchShopsdata();
   }, []); // Run once when the component mounts
-
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="h-16 w-16 animate-spin rounded-full border-b-4 border-t-4 border-blue-500"></div>
-          <h2 className="text-2xl font-semibold">Loading</h2>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <PageContainer>
