@@ -15,9 +15,16 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "**/*": [
-      "prettier --write "
-    ]
+    "*.ts": "prettier --write",
+    "*.tsx": "prettier --write",
+    "*.js": "prettier --write",
+    "*.jsx": "prettier --write",
+    "*.json": "prettier --write",
+    "*.md": "prettier --write",
+    "*.html": "prettier --write",
+    "*.css": "prettier --write",
+    "*.scss": "prettier --write",
+    "**/*.{ts,tsx,js,jsx,json,md,html,css,scss}": "prettier --write"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.1.0",
