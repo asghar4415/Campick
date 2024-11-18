@@ -45,7 +45,7 @@ export default function OverViewPage() {
             Authorization: `Bearer ${token}`
           }
         });
-        console.log('Shops response:', shopsResponse.data);
+        // console.log('Shops response:', shopsResponse.data);
         const shops = shopsResponse.data.shops;
 
         if (shops.length > 0) {
@@ -58,7 +58,7 @@ export default function OverViewPage() {
               }
             }
           );
-          console.log('Dashboard response:', dashboardResponse.data);
+          // console.log('Dashboard response:', dashboardResponse.data);
           setDashboardData({
             revenue: dashboardResponse.data.revenue,
             shopDetails: shops,
@@ -73,7 +73,7 @@ export default function OverViewPage() {
             Authorization: `Bearer ${token}`
           }
         });
-        console.log('Profile response:', profileResponse.data);
+        // console.log('Profile response:', profileResponse.data);
         setData({
           id: profileResponse.data.id,
           user_name: profileResponse.data.user_name,

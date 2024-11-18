@@ -124,7 +124,12 @@ export const NavigationMenuDemo = ({ isLoggedIn }: NavigationMenuDemoProps) => {
               >
                 Sign in
               </Button>
-              <Button className="gap-3">Sign up</Button>
+              <Button
+                className="gap-3"
+                onClick={() => navigate.push('/signup')}
+              >
+                Sign up
+              </Button>
             </>
           )}
         </div>

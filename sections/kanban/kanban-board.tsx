@@ -129,11 +129,10 @@ export function AllShops({ shopExists }: { shopExists: boolean }) {
   }
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen overflow-hidden">
       {error && <p className="text-red-500">{error}</p>}
       {shopExists ? (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Left Column - Shop Details */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 ">
           <div className="relative flex flex-col items-center rounded-lg bg-white p-6 shadow-lg">
             <Image
               src={shopData?.image_url || shopImg}
@@ -182,7 +181,7 @@ export function AllShops({ shopExists }: { shopExists: boolean }) {
           </div>
 
           {/* Right Column - Menu Items */}
-          <div className="rounded-lg bg-white p-6 shadow-lg">
+          <div className="overflow-y-auto rounded-lg bg-white p-6 shadow-lg">
             <h3 className="mb-4 text-xl font-semibold">Menu Items</h3>
             {menuItems.length === 0 ? (
               <p className="text-gray-500">No items available in the menu.</p>
@@ -214,8 +213,8 @@ export function AllShops({ shopExists }: { shopExists: boolean }) {
           </div>
         </div>
       ) : (
-        <div className="text-center">
-          <p className="text-gray-500">No shops available.</p>
+        <div className="mt-5 text-center ">
+          {/* <p className="text-gray-500">No shops available.</p> */}
           <NewSectionDialog />
         </div>
       )}

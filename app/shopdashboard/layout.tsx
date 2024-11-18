@@ -3,7 +3,12 @@
 import Header from '@/components/layout/header';
 import Sidebar from '@/components/layout/sidebar';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import VerifyEmailModal from '@/components/verify-email-modal';
+import jwtDecode from 'jsonwebtoken';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function DashboardLayout({
   children
@@ -11,37 +16,55 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  // const [shopOwnerLoggedin, setShopOwnerLoggedin] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const validateToken = () => {
+      const token = localStorage.getItem('token');
 
-    if (!token) {
-      // Redirect if no token
-      router.push('/');
-      return;
-    }
-
-    try {
-      const payload = token.split('.')[1]; // Extract payload from JWT
-      const parsedToken = JSON.parse(atob(payload)); // Decode payload
-
-      if (parsedToken.role === 'shop_owner') {
-        console.log('Shop owner logged in');
-        // setShopOwnerLoggedin(true);
-      } else {
-        router.push('/'); // Redirect non-shop owners to home
+      if (!token) {
+        router.push('/');
+        return;
       }
-    } catch (error) {
-      console.error('Error decoding the token:', error);
-      router.push('/'); // Redirect on error
-    }
+
+      try {
+        const parsedToken: any = jwtDecode.decode(token);
+        if (parsedToken?.role !== 'shop_owner') {
+          router.push('/');
+        }
+      } catch (error) {
+        console.error('Invalid token:', error);
+        router.push('/');
+      }
+    };
+
+    validateToken();
   }, [router]);
 
+  useEffect(() => {
+    const getUserData = async () => {
+      const token = localStorage.getItem('token');
+      try {
+        const { data } = await axios.get(`${API_URL}/api/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        setIsVerified(data.is_verified);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    getUserData();
+  }, []);
+
   return (
-    <div className="flex">
+    <div className="flex min-h-screen">
       <Sidebar />
-      <main className="w-full flex-1 overflow-hidden">
+      <main className="relative w-full flex-1">
+        {!isVerified && <VerifyEmailModal />}
         <Header />
         {children}
       </main>
