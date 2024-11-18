@@ -1,4 +1,5 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -10,63 +11,59 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import GoogleSignInButton from './google-auth-button';
+import { useState } from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const SIGNIN_URL = `${API_URL}/api/signin`;
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Enter a valid email address' }),
   password: z
     .string()
-    .min(6, { message: 'Password must be at least 6 characters long' }) // Add password validation
+    .min(6, { message: 'Password must be at least 6 characters long' })
 });
 
 type UserFormValue = z.infer<typeof formSchema>;
 
 export default function UserAuthForm() {
-  const router = useRouter(); // Initialize router
+  const router = useRouter();
   const form = useForm<UserFormValue>({
     resolver: zodResolver(formSchema)
   });
+  const [loading, setLoading] = useState(false);
+
+  const redirectToPage = (role: string) => {
+    const roleRoutes: { [key: string]: string } = {
+      shop_owner: '/shopdashboard',
+      student: '/',
+      teacher: '/'
+    };
+    router.push(roleRoutes[role] || '/');
+  };
 
   const onSubmit = async (data: UserFormValue) => {
+    setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/api/signin`, {
-        email: data.email,
-        password: data.password
-      });
-      console.log('Login response:', response.data);
-
-      // Store the token regardless of the role
+      const response = await axios.post(SIGNIN_URL, data);
       localStorage.setItem('token', response.data.token);
-
-      // Check the role and redirect accordingly
-      if (response.data.user_info.role === 'shop_owner') {
-        console.log('Redirecting to dashboard');
-        router.push('/shopdashboard');
-      } else if (
-        response.data.user_info.role === 'student' ||
-        response.data.user_info.role === 'teacher'
-      ) {
-        console.log('Redirecting to home page');
-        router.push('/');
+      redirectToPage(response.data.user_info.role);
+    } catch (error: AxiosError | any) {
+      if (error.response) {
+        alert(error.response.data.message || 'Login failed. Please try again.');
       } else {
-        console.error('Unexpected role or condition');
-        alert('Unexpected error occurred.');
+        alert('An unexpected error occurred.');
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      alert('Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const gotosignuppage = () => {
-    router.push('/signup'); // Navigate to the signup page
-  };
+  const handleSignupRedirect = () => router.push('/signup');
 
   return (
     <>
@@ -109,8 +106,8 @@ export default function UserAuthForm() {
               </FormItem>
             )}
           />
-          <Button className="ml-auto w-full" type="submit">
-            Sign In
+          <Button className="ml-auto w-full" type="submit" disabled={loading}>
+            {loading ? 'Loading...' : 'Login'}
           </Button>
         </form>
       </Form>
@@ -119,7 +116,7 @@ export default function UserAuthForm() {
         <span className="bg-background px-2 text-muted-foreground">
           If you don't have an account,{' '}
           <a
-            onClick={gotosignuppage}
+            onClick={handleSignupRedirect}
             className="text-primary"
             style={{ cursor: 'pointer' }}
           >

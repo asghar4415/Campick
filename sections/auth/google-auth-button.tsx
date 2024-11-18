@@ -1,29 +1,27 @@
+// GoogleSignInButton.tsx
+
 'use client';
 
-import { useSearchParams } from 'next/navigation';
-import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 
-function GoogleSignInButtonComponent() {
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl');
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+export default function GoogleSignInButton() {
+  const handleGoogleSignIn = () => {
+    // Redirect to your backend's Google Auth route
+    window.location.href = `${API_URL}/auth/google`;
+  };
 
   return (
     <Button
       className="w-full"
       variant="outline"
       type="button"
-      onClick={() =>
-        signIn('google', { callbackUrl: callbackUrl ?? '/dashboard' })
-      }
+      onClick={handleGoogleSignIn}
     >
       <Icons.google className="mr-2 h-4 w-4" />
       Continue with Google
     </Button>
   );
-}
-
-export default function GoogleSignInButton() {
-  return <GoogleSignInButtonComponent />;
 }

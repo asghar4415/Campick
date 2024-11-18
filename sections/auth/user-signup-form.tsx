@@ -1,4 +1,5 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -10,13 +11,14 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
-import GoogleSignInButton from './google-auth-button';
+import { useState } from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const SIGNUP_URL = `${API_URL}/api/shop_signup`;
 
 const formSchema = z.object({
   fullname: z
@@ -35,29 +37,29 @@ export default function UserSignupForm() {
   const form = useForm<UserFormValue>({
     resolver: zodResolver(formSchema)
   });
+  const [loading, setLoading] = useState(false);
 
   const onSubmit = async (data: UserFormValue) => {
+    setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/api/shop_signup`, {
+      const response = await axios.post(SIGNUP_URL, {
         user_name: data.fullname,
         email: data.email,
         password: data.password
       });
-      // console.log('Signup response:', response.data);
 
-      if (response.status === 201 || response.status === 200) {
-        alert('Signup successful. Please login to continue.');
-        router.push('/signin');
-      } else if (response.status === 401 || response.status === 400) {
-        alert('Signup failed. Please check your credentials.');
-      }
-    } catch (error) {
-      // console.error('Signup error:', error);
-      alert('Signup failed. Please check your credentials.');
+      alert('Signup successful. Please login to continue.');
+      router.push('/signin');
+    } catch (error: AxiosError | any) {
+      const errorMessage =
+        error.response?.data?.message || 'Signup failed. Please try again.';
+      alert(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const gotoLoginPage = () => {
+  const handleLoginRedirect = () => {
     router.push('/signin');
   };
 
@@ -119,17 +121,18 @@ export default function UserSignupForm() {
               </FormItem>
             )}
           />
-          <Button className="ml-auto w-full" type="submit">
-            Sign Up
+
+          <Button className="ml-auto w-full" type="submit" disabled={loading}>
+            {loading ? 'Loading...' : 'Sign Up'}
           </Button>
         </form>
       </Form>
 
       <div className="relative flex justify-center text-xs uppercase">
         <span className="bg-background px-2 text-muted-foreground">
-          Already Signed up?,{' '}
+          Already signed up?{' '}
           <a
-            onClick={gotoLoginPage}
+            onClick={handleLoginRedirect}
             className="text-primary"
             style={{ cursor: 'pointer' }}
           >
@@ -137,20 +140,6 @@ export default function UserSignupForm() {
           </a>
         </span>
       </div>
-
-      {/* <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            Or continue with
-          </span>
-        </div>
-      </div>
-
-      <GoogleSignInButton /> */}
     </>
   );
 }

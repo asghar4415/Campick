@@ -1,21 +1,32 @@
 import React, { useState } from 'react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import axios from 'axios';
-import { useRouter } from 'next/navigation';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const OtpVerify = ({ closeModal }: { closeModal: () => void }) => {
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [isExpired, setIsExpired] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const router = useRouter();
+  const token = localStorage.getItem('token') || '';
 
-  const otpverification = async () => {
-    const token = localStorage.getItem('token');
-
+  const parseToken = () => {
     try {
-      const response = await axios.post(
+      return JSON.parse(atob(token.split('.')[1]));
+    } catch {
+      return {};
+    }
+  };
+
+  const otpVerification = async () => {
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    try {
+      await axios.post(
         `${API_URL}/api/verifyOTP`,
         { otp },
         {
@@ -26,22 +37,49 @@ const OtpVerify = ({ closeModal }: { closeModal: () => void }) => {
       );
 
       setSuccess('OTP verified successfully!');
-      setError('');
-      // console.log(response.data);
+      setIsExpired(false);
       window.location.reload();
-    } catch (error: any) {
-      setSuccess('');
-      setError(error.response?.data?.message || 'Failed to verify OTP.');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to verify OTP.');
+      if (err.response?.data?.expired) setIsExpired(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resendOTP = async () => {
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    const tokenData = parseToken();
+
+    if (!tokenData.email) {
+      setError('Invalid token. Please log in again.');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      await axios.post(`${API_URL}/api/resend-otp`, {
+        email: tokenData.email
+      });
+
+      setSuccess('OTP sent successfully!');
+      setIsExpired(false);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to resend OTP.');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp.trim() === '') {
+    if (!otp.trim()) {
       setError('OTP is required.');
       return;
     }
-    otpverification();
+    otpVerification();
   };
 
   return (
@@ -82,20 +120,43 @@ const OtpVerify = ({ closeModal }: { closeModal: () => void }) => {
             className="mb-3 w-full rounded border border-gray-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
+            disabled={loading}
           />
-          <button
+          <Button
             type="submit"
-            className={buttonVariants({ variant: 'default', size: 'default' })}
+            variant="default"
+            size="default"
+            disabled={loading}
           >
-            Submit OTP
-          </button>
+            {loading ? 'Verifying...' : 'Verify'}
+          </Button>
         </form>
 
         {/* Error Message */}
-        {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
+        {error && (
+          <p className="mt-3 text-sm text-red-500" aria-live="polite">
+            {error}
+          </p>
+        )}
 
         {/* Success Message */}
-        {success && <p className="mt-3 text-sm text-green-500">{success}</p>}
+        {success && (
+          <p className="mt-3 text-sm text-green-500" aria-live="polite">
+            {success}
+          </p>
+        )}
+
+        {isExpired && (
+          <Button
+            variant="secondary"
+            size="default"
+            onClick={resendOTP}
+            className="mt-3"
+            disabled={loading}
+          >
+            {loading ? 'Resending...' : 'Resend OTP'}
+          </Button>
+        )}
       </div>
     </div>
   );
@@ -113,12 +174,13 @@ export default function VerifyEmailModal() {
           <p className="text-sm text-gray-600">
             Please verify your email to continue using your account.
           </p>
-          <button
-            className={buttonVariants({ variant: 'default', size: 'default' })}
+          <Button
+            variant="default"
+            size="default"
             onClick={() => setShowOtpVerify(true)}
           >
             Verify
-          </button>
+          </Button>
         </div>
       )}
     </>

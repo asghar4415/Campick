@@ -17,6 +17,7 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const [isVerified, setIsVerified] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const validateToken = () => {
@@ -43,6 +44,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     const getUserData = async () => {
+      setLoading(true);
       const token = localStorage.getItem('token');
       try {
         const { data } = await axios.get(`${API_URL}/api/profile`, {
@@ -55,6 +57,7 @@ export default function DashboardLayout({
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
+      setLoading(false);
     };
 
     getUserData();
@@ -64,7 +67,7 @@ export default function DashboardLayout({
     <div className="flex min-h-screen">
       <Sidebar />
       <main className="relative w-full flex-1">
-        {!isVerified && <VerifyEmailModal />}
+        {loading ? <div></div> : isVerified ? <></> : <VerifyEmailModal />}
         <Header />
         {children}
       </main>
