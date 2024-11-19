@@ -1,18 +1,28 @@
 'use client';
-import React, { useRef } from 'react';
-import { useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { NavigationMenuDemo } from '@/components/navbar';
 import { CTA1 } from '@/components/cta';
 import { Shops } from '@/components/shopdetails';
 import { MenuDisplay } from '@/components/menuitems';
-import { useRouter } from 'next/navigation';
-
 import { Footer1 } from '@/components/footer';
+
+interface CartItem {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  shop_name: string;
+  quantity: number;
+}
 
 export default function HomePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const router = useRouter();
+  const shopsRef = useRef(null);
+
   useEffect(() => {
     async function authenticatiocheck() {
       const token = localStorage.getItem('token');
@@ -23,18 +33,16 @@ export default function HomePage() {
           const payload = token.split('.')[1];
           parsedToken = JSON.parse(atob(payload));
 
-          // Handle routing immediately
-          if (parsedToken.role == 'shop_owner') {
+          if (parsedToken.role === 'shop_owner') {
             router.push('/shopdashboard');
           } else if (
-            parsedToken.role == 'student' ||
-            parsedToken.role == 'teacher'
+            parsedToken.role === 'student' ||
+            parsedToken.role === 'teacher'
           ) {
             setIsLoggedIn(true);
           }
         } catch (error) {
           console.error('Error decoding the token:', error);
-          parsedToken = token;
         }
       } else {
         setIsLoggedIn(false);
@@ -44,18 +52,19 @@ export default function HomePage() {
     authenticatiocheck();
   }, [router]);
 
-  const shopsRef = useRef(null);
-
   return (
     <div className="flex min-h-screen flex-col">
-      {' '}
-      {/* Added min-h-screen */}
-      <NavigationMenuDemo isLoggedIn={isLoggedIn} />
+      <NavigationMenuDemo isLoggedIn={isLoggedIn} cartItems={cartItems} />
+
       <div className="container mx-auto flex-1 overflow-auto px-4 py-8">
-        {' '}
         <CTA1 shopsRef={shopsRef} />
         <Shops />
-        <MenuDisplay ref={shopsRef} />
+        {/* Pass `cartItems` and `setCartItems` to MenuDisplay */}
+        <MenuDisplay
+          ref={shopsRef}
+          cartItems={cartItems}
+          setCartItems={setCartItems}
+        />
       </div>
       <Footer1 />
     </div>

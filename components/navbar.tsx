@@ -21,6 +21,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface NavigationMenuDemoProps {
   isLoggedIn: boolean;
+  cartItems: any[]; // Add cartItems to the props
 }
 
 const UserMenu = ({
@@ -42,6 +43,8 @@ const UserMenu = ({
       <DropdownMenuSeparator />
       <DropdownMenuItem>Settings</DropdownMenuItem>
       <DropdownMenuItem>Support</DropdownMenuItem>
+      <DropdownMenuItem>Orders</DropdownMenuItem>
+
       <DropdownMenuSeparator />
       <DropdownMenuItem onClick={onLogout}>Logout</DropdownMenuItem>
     </DropdownMenuContent>
@@ -51,20 +54,34 @@ const MobileMenu = ({
   isLoggedIn,
   userData,
   onLogout,
-  router
+  router,
+  cartLength // Add cartLength here
 }: {
   isLoggedIn: boolean;
   userData: any;
   onLogout: () => void;
   router: any;
+  cartLength: number; // Define cartLength type here
 }) => (
   <div className="absolute right-0 top-20 w-full bg-background px-8 py-4 shadow-lg lg:hidden">
     {isLoggedIn ? (
       <div className="flex flex-col items-end gap-4">
-        <Button variant="ghost" size="sm" className="w-full text-left">
+        <button
+          onClick={() => console.log('Go to cart page')} // Add your redirect logic here
+          className="relative flex w-full items-center justify-center text-left "
+        >
           <ShoppingCart className="mr-2 h-5 w-5" aria-label="Shopping Cart" />
           Cart
-        </Button>
+          {/* Display the cart item count */}
+          {cartLength > 0 && (
+            <div
+              className="absolute right-0 top-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white md:text-sm"
+              style={{ transform: 'translate(25%, -25%)' }}
+            >
+              {cartLength}
+            </div>
+          )}
+        </button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline2" size="icon" className="w-full text-left">
@@ -78,6 +95,7 @@ const MobileMenu = ({
             <DropdownMenuSeparator />
             <DropdownMenuItem>Settings</DropdownMenuItem>
             <DropdownMenuItem>Support</DropdownMenuItem>
+            <DropdownMenuItem>Orders</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => {
@@ -115,7 +133,10 @@ const MobileMenu = ({
   </div>
 );
 
-export const NavigationMenuDemo = ({ isLoggedIn }: NavigationMenuDemoProps) => {
+export const NavigationMenuDemo = ({
+  isLoggedIn,
+  cartItems
+}: NavigationMenuDemoProps) => {
   const router = useRouter();
   const [isOpen, setOpen] = useState(false);
   const [scrolling, setScrolling] = useState(false);
@@ -126,8 +147,8 @@ export const NavigationMenuDemo = ({ isLoggedIn }: NavigationMenuDemoProps) => {
     name: '',
     image: ''
   });
+  const cartLength = cartItems.length;
 
-  // Handle scrolling effect for header shadow
   useEffect(() => {
     const handleScroll = () => setScrolling(window.scrollY > 0);
 
@@ -135,7 +156,6 @@ export const NavigationMenuDemo = ({ isLoggedIn }: NavigationMenuDemoProps) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Logout handler
   const userLogout = () => {
     localStorage.removeItem('token');
     setUserData({
@@ -148,7 +168,6 @@ export const NavigationMenuDemo = ({ isLoggedIn }: NavigationMenuDemoProps) => {
     router.push('/');
   };
 
-  // Fetch user profile data
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -203,9 +222,21 @@ export const NavigationMenuDemo = ({ isLoggedIn }: NavigationMenuDemoProps) => {
 
         {/* Right Section */}
         <div className="hidden w-full justify-end gap-4 lg:flex">
-          <Button className="border-none" variant="ghost" size="sm">
+          <button
+            onClick={() => console.log('Go to cart page')} // Add your redirect logic here
+            className="relative rounded-md bg-transparent p-2"
+          >
             <ShoppingCart className="h-5 w-5" aria-label="Shopping Cart" />
-          </Button>
+            {/* Display the cart item count */}
+            {cartLength > 0 && (
+              <div
+                className="absolute right-0 top-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white md:text-sm"
+                style={{ transform: 'translate(25%, -25%)' }}
+              >
+                {cartLength}
+              </div>
+            )}
+          </button>
 
           {isLoggedIn ? (
             <>
@@ -261,6 +292,7 @@ export const NavigationMenuDemo = ({ isLoggedIn }: NavigationMenuDemoProps) => {
             userData={userData}
             onLogout={userLogout}
             router={router}
+            cartLength={cartLength}
           />
         )}
       </div>

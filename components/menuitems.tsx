@@ -7,19 +7,28 @@ import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import Image from 'next/image';
 
+// Define the type for menu items and cart items
+interface MenuItem {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  shop_name: string;
+}
+
+interface CartItem extends MenuItem {
+  quantity: number; // Add quantity to CartItem
+}
+
 export const MenuDisplay = forwardRef<
   HTMLDivElement,
-  React.HTMLProps<HTMLDivElement>
->((props, ref) => {
-  const [menuItems, setMenuItems] = useState<
-    Array<{
-      name: string;
-      description: string;
-      price: number;
-      image: string;
-      shop_name: string;
-    }>
-  >([]);
+  React.HTMLProps<HTMLDivElement> & {
+    cartItems: CartItem[]; // Update cartItems type to include quantity
+    setCartItems: React.Dispatch<React.SetStateAction<CartItem[]>>; // Update setCartItems to handle CartItem[]
+  }
+>(({ cartItems, setCartItems }, ref) => {
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [token, setToken] = useState<string | null>(null);
   const { toast } = useToast();
   const router = useRouter();
@@ -37,7 +46,6 @@ export const MenuDisplay = forwardRef<
         );
         if (response.data.success) {
           setMenuItems(response.data.items || []);
-          console.log('Menu Items:', response.data.items);
         } else {
           console.error('Error fetching menu items:', response.data.message);
         }
@@ -68,86 +76,118 @@ export const MenuDisplay = forwardRef<
     });
   };
 
-  const addToCart = (itemName: string) => {
+  const addToCart = (item: MenuItem) => {
     if (!token) {
       showLoginToast();
       return;
     }
-    console.log(`Added ${itemName} to cart`);
+
+    setCartItems((prevItems) => {
+      const existingItem = prevItems.find((i) => i.id === item.id);
+      if (existingItem) {
+        const updatedItems = prevItems.map((i) =>
+          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+        );
+        console.log('Updated Cart Items:', updatedItems); // Debug log
+        return updatedItems;
+      }
+      const newItems = [...prevItems, { ...item, quantity: 1 }];
+      console.log('Updated Cart Items:', newItems); // Debug log
+      return newItems;
+    });
+
+    toast({
+      title: 'Item Added to Cart',
+      description: `${item.name} has been added to your cart.`
+    });
   };
 
-  const removeFromCart = (itemName: string) => {
+  useEffect(() => {
+    console.log('Updated Cart Items:', cartItems);
+  }, [cartItems]);
+
+  const removeFromCart = (item: MenuItem) => {
     if (!token) {
       showLoginToast();
       return;
     }
-    console.log(`Removed ${itemName} from cart`);
+
+    setCartItems((prevItems) => {
+      const existingItem = prevItems.find((i) => i.id === item.id);
+      if (existingItem?.quantity === 1) {
+        return prevItems.filter((i) => i.id !== item.id);
+      }
+      return prevItems.map((i) =>
+        i.id === item.id ? { ...i, quantity: i.quantity - 1 } : i
+      );
+    });
+
+    toast({
+      title: 'Item Removed from Cart',
+      description: `${item.name} has been removed from your cart.`
+    });
   };
 
   return (
     <div ref={ref} className="w-full py-10">
       <div className="container mx-auto">
-        <div className="flex flex-col gap-10">
-          <div className="flex flex-col items-start gap-4">
-            <h2 className="font-regular max-w-xl text-left text-3xl tracking-tighter md:text-5xl">
-              Menu Items
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {menuItems.length === 0 ? (
-              <h3 className="text-xl font-semibold text-foreground">
-                No menu items available
-              </h3>
-            ) : (
-              menuItems.map((item, index) => (
-                <div
-                  className="relative flex flex-col gap-2 rounded-md bg-muted p-4 shadow-lg"
-                  key={index}
-                >
-                  <div className="mb-2 aspect-video rounded-md">
-                    {item.image && (
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        width={500}
-                        height={300}
-                        className="rounded-md"
-                      />
-                    )}
-                  </div>
-                  <h3 className="text-xl tracking-tight">{item.name}</h3>
-                  <p className="text-base text-muted-foreground">
-                    {item.description}
-                  </p>
-                  <p className="text-base text-muted-foreground">
-                    Shop: {item.shop_name}
-                  </p>
-                  <p className="text-base font-semibold">${item.price}</p>
+        <h2 className="text-3xl md:text-3xl">Menu Items</h2>
+        <br />
 
-                  {/* Add to Cart / Remove from Cart Buttons */}
-                  <div className="absolute bottom-4 right-4 flex gap-2">
-                    <button
-                      onClick={() => addToCart(item.name)}
-                      className="rounded-md bg-green-600 px-3 py-1 text-white hover:bg-green-700"
-                    >
-                      +
-                    </button>
-                    <button
-                      onClick={() => removeFromCart(item.name)}
-                      className="rounded-md bg-red-600 px-3 py-1 text-white hover:bg-red-700"
-                    >
-                      -
-                    </button>
-                  </div>
+        <div className="flex flex-wrap gap-5">
+          {menuItems.length === 0 ? (
+            <h3 className="text-xl font-semibold text-foreground">
+              No menu items available
+            </h3>
+          ) : (
+            menuItems.map((item) => (
+              <div
+                className="relative flex w-full flex-col gap-2 rounded-md bg-muted p-4 shadow-md md:w-80" // Adjust width and padding
+                key={item.id}
+              >
+                <div className="mb-4 aspect-video rounded-md">
+                  {item.image && (
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      width={300} // Adjust width to fit better
+                      height={200} // Adjust height to match width
+                      className="rounded-md"
+                    />
+                  )}
                 </div>
-              ))
-            )}
-          </div>
+                <h3 className="text-lg font-semibold tracking-tight md:text-xl">
+                  {item.name}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {item.description}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Shop: {item.shop_name}
+                </p>
+                <p className="text-lg font-semibold">${item.price}</p>
+
+                <div className="absolute bottom-4 right-4 flex gap-2">
+                  <button
+                    onClick={() => addToCart(item)}
+                    className="rounded-md bg-green-600 px-3 py-1 text-white hover:bg-green-700"
+                  >
+                    +
+                  </button>
+                  <button
+                    onClick={() => removeFromCart(item)}
+                    className="rounded-md bg-red-600 px-3 py-1 text-white hover:bg-red-700"
+                  >
+                    -
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
   );
 });
 
-// Adding display name for better debugging
 MenuDisplay.displayName = 'MenuDisplay';
