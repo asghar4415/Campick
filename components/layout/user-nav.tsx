@@ -5,15 +5,14 @@ import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import axios from 'axios';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function UserNav() {
   const router = useRouter();
@@ -22,44 +21,38 @@ export default function UserNav() {
     id: null,
     role: '',
     name: '',
-    image: '' // Add image in the state for the avatar
+    image: '' // Image for the avatar
   });
-  const [isClient, setIsClient] = useState(false); // State to track if it's client-side
 
   useEffect(() => {
-    setIsClient(true); // Set to true when mounted on the client
-  }, []);
+    const token = localStorage.getItem('token');
 
-  useEffect(() => {
-    if (isClient) {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const payload = token.split('.')[1]; // Extract payload from JWT
-          const parsedToken = JSON.parse(atob(payload)); // Decode payload
-
-          // Validate if the token contains all necessary fields
-          if (parsedToken?.email && parsedToken?.id && parsedToken?.role) {
-            setData({
-              email: parsedToken.email,
-              id: parsedToken.id,
-              role: parsedToken.role,
-              name: parsedToken.name || 'Shop Owner', // Default to 'Shop Owner' if no name
-              image: parsedToken.image || '' // Default image can be added if not in token
-            });
-          } else {
-            throw new Error('Invalid token payload');
+    const fetchProfile = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/api/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`
           }
-        } catch (error) {
-          console.error('Error decoding the token:', error);
-          router.push('/'); // Redirect on error
-        }
-      } else {
-        console.log('No token found');
-        router.push('/'); // Redirect if no token is found
+        });
+        setData({
+          email: response.data.email,
+          id: response.data.id,
+          role: response.data.role,
+          name: response.data.user_name,
+          image: response.data.image // Ensure your backend sends this field
+        });
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        router.push('/login'); // Redirect to login if user is unauthorized
       }
+    };
+
+    if (token) {
+      fetchProfile();
+    } else {
+      router.push('/'); // Redirect if no token is found
     }
-  }, [isClient, router]); // Add isClient to the dependency array
+  }, [router]);
 
   return (
     <DropdownMenu>
@@ -69,7 +62,9 @@ export default function UserNav() {
             {data.image ? (
               <AvatarImage src={data.image} alt={data.name} />
             ) : (
-              <AvatarFallback>{data.name?.[0] || 'U'}</AvatarFallback>
+              <AvatarFallback>
+                {data.name?.[0]?.toUpperCase() || 'U'}
+              </AvatarFallback>
             )}
           </Avatar>
         </Button>
@@ -77,39 +72,16 @@ export default function UserNav() {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{data.name}</p>
+            <p className="text-sm font-medium leading-none">
+              {data.name || 'User'}
+            </p>
             <p className="text-xs leading-none text-muted-foreground">
-              {data.email}
+              {data.email || 'No email available'}
             </p>
           </div>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem>
-            Profile
-            <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            Billing
-            <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            Settings
-            <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-          </DropdownMenuItem>
-          <DropdownMenuItem>New Team</DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={() => {
-            localStorage.removeItem('token');
-            router.push('/');
-          }}
-        >
-          Log out
-          <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
+``;
