@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Bell, CircleUser, X, Menu, ShoppingCart } from 'lucide-react';
+import { Bell, CircleUser, ShoppingCart } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,39 +12,172 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import MainLogoBlack from '@/public/black logo.png';
 import Image from 'next/image';
 import AdminSearch from '@/components/admin-search';
+import axios from 'axios';
+import MainLogo from '@/public/black logo.png';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface NavigationMenuDemoProps {
   isLoggedIn: boolean;
 }
 
+const UserMenu = ({
+  userData,
+  onLogout
+}: {
+  userData: any;
+  onLogout: () => void;
+}) => (
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Button variant="secondary" size="icon" className="rounded-full">
+        <CircleUser className="h-5 w-5" aria-label="User Profile" />
+      </Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent align="end">
+      <DropdownMenuLabel>{userData.name || 'User'}</DropdownMenuLabel>
+      <DropdownMenuItem>{userData.email || 'No email'}</DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem>Settings</DropdownMenuItem>
+      <DropdownMenuItem>Support</DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem onClick={onLogout}>Logout</DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+);
+const MobileMenu = ({
+  isLoggedIn,
+  userData,
+  onLogout,
+  router
+}: {
+  isLoggedIn: boolean;
+  userData: any;
+  onLogout: () => void;
+  router: any;
+}) => (
+  <div className="absolute right-0 top-20 w-full bg-background px-8 py-4 shadow-lg lg:hidden">
+    {isLoggedIn ? (
+      <div className="flex flex-col items-end gap-4">
+        <Button variant="ghost" size="sm" className="w-full text-left">
+          <ShoppingCart className="mr-2 h-5 w-5" aria-label="Shopping Cart" />
+          Cart
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline2" size="icon" className="w-full text-left">
+              <CircleUser className="mr-2 h-5 w-5" aria-label="User Profile" />
+              Profile
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-full">
+            <DropdownMenuLabel>{userData.name || 'User'}</DropdownMenuLabel>
+            <DropdownMenuItem>{userData.email || 'No email'}</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuItem>Support</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => {
+                localStorage.removeItem('token');
+                router.push('/');
+              }}
+            >
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Button
+          variant="outline2"
+          size="icon"
+          className="flex w-full items-center text-left"
+        >
+          <Bell className="mr-2 h-5 w-5" aria-label="Notifications" />
+          Notifications
+        </Button>
+      </div>
+    ) : (
+      <div className="flex flex-col gap-4">
+        <Button
+          variant="outline"
+          onClick={() => router.push('/signin')}
+          className="w-full"
+        >
+          Sign in
+        </Button>
+        <Button onClick={() => router.push('/signup')} className="w-full">
+          Sign up
+        </Button>
+      </div>
+    )}
+  </div>
+);
+
 export const NavigationMenuDemo = ({ isLoggedIn }: NavigationMenuDemoProps) => {
-  const navigate = useRouter();
+  const router = useRouter();
   const [isOpen, setOpen] = useState(false);
   const [scrolling, setScrolling] = useState(false);
+  const [userData, setUserData] = useState({
+    email: '',
+    id: null,
+    role: '',
+    name: '',
+    image: ''
+  });
 
-  const handleScroll = () => {
-    if (window.scrollY > 0) {
-      setScrolling(true);
-    } else {
-      setScrolling(false);
-    }
-  };
-
+  // Handle scrolling effect for header shadow
   useEffect(() => {
+    const handleScroll = () => setScrolling(window.scrollY > 0);
+
     window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const userLoggingout = () => {
+  // Logout handler
+  const userLogout = () => {
     localStorage.removeItem('token');
-    navigate.push('/');
-    window.location.reload();
+    setUserData({
+      email: '',
+      id: null,
+      role: '',
+      name: '',
+      image: ''
+    });
+    router.push('/');
   };
+
+  // Fetch user profile data
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/');
+      return;
+    }
+
+    const fetchProfile = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/api/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setUserData({
+          email: response.data.email,
+          id: response.data.id,
+          role: response.data.role,
+          name: response.data.user_name,
+          image: response.data.image
+        });
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        router.push('/');
+      }
+    };
+
+    fetchProfile();
+  }, [router]);
 
   return (
     <header
@@ -53,150 +186,82 @@ export const NavigationMenuDemo = ({ isLoggedIn }: NavigationMenuDemoProps) => {
       }`}
     >
       <div className="container relative mx-auto flex min-h-20 flex-row items-center gap-4 lg:grid lg:grid-cols-3">
-        {/* Left Menu for large screens */}
+        {/* Left Menu */}
         <div className="hidden flex-row items-center justify-start gap-4 lg:flex">
           <div className="w-full flex-grow border lg:w-auto lg:flex-1">
             <AdminSearch />
           </div>
         </div>
 
-        {/* Center Logo (Single logo for all screens) */}
+        {/* Center Logo */}
         <div
           className="flex w-full justify-center hover:cursor-pointer lg:w-auto"
-          onClick={() => navigate.push('/')}
+          onClick={() => router.push('/')}
         >
-          <Image
-            src={MainLogoBlack}
-            alt="CamPick Logo"
-            width={140}
-            height={70}
-          />
+          <Image src={MainLogo} alt="Logo" width={140} height={70} priority />
         </div>
 
-        {/* Right Section for Large Screens */}
+        {/* Right Section */}
         <div className="hidden w-full justify-end gap-4 lg:flex">
-          {/* Add to Cart Button */}
           <Button className="border-none" variant="ghost" size="sm">
-            <ShoppingCart className="h-5 w-5" />
+            <ShoppingCart className="h-5 w-5" aria-label="Shopping Cart" />
           </Button>
 
           {isLoggedIn ? (
             <>
-              {/* Profile Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    className="rounded-full"
-                  >
-                    <CircleUser className="h-5 w-5" />
-                    <span className="sr-only">Toggle user menu</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>Settings</DropdownMenuItem>
-                  <DropdownMenuItem>Support</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => {
-                      userLoggingout();
-                    }}
-                  >
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {/* Notifications */}
+              <UserMenu userData={userData} onLogout={userLogout} />
               <Button variant="secondary" size="icon" className="rounded-full">
-                <Bell className="h-5 w-5" />
-                <span className="sr-only">Toggle notifications</span>
+                <Bell className="h-5 w-5" aria-label="Notifications" />
               </Button>
             </>
           ) : (
             <>
-              <Button
-                variant="outline"
-                onClick={() => navigate.push('/signin')}
-              >
+              <Button variant="outline" onClick={() => router.push('/signin')}>
                 Sign in
               </Button>
-              <Button
-                className="gap-3"
-                onClick={() => navigate.push('/signup')}
-              >
-                Sign up
-              </Button>
+              <Button onClick={() => router.push('/signup')}>Sign up</Button>
             </>
           )}
         </div>
 
-        <div className="right flex w-auto items-center justify-end lg:hidden">
-          <Button className="border-none" variant="ghost" size="sm">
-            <ShoppingCart className="h-5 w-5" />
-          </Button>
-
-          <Button variant="ghost" onClick={() => setOpen(!isOpen)}>
-            {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
-        </div>
-
-        {isOpen && (
-          <div className="absolute right-0 top-20 flex w-full flex-col gap-5 bg-background px-8 py-3 shadow-lg lg:hidden">
-            {isLoggedIn ? (
-              <>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      className="rounded-full"
-                    >
-                      <CircleUser className="h-5 w-5" />
-                      <span className="sr-only">Toggle user menu</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>Settings</DropdownMenuItem>
-                    <DropdownMenuItem>Support</DropdownMenuItem>
-                    <DropdownMenuSeparator />
-
-                    <DropdownMenuItem
-                      onClick={() => {
-                        userLoggingout();
-                      }}
-                    >
-                      Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="rounded-full"
-                >
-                  <Bell className="h-5 w-5" />
-                  <span className="sr-only">Toggle notifications</span>
-                </Button>
-              </>
+        {/* Mobile Section */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="lg:hidden"
+          onClick={() => setOpen(!isOpen)}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            {isOpen ? (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             ) : (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={() => navigate.push('/signin')}
-                >
-                  Sign in
-                </Button>
-                <Button className="gap-3">Sign up</Button>
-              </>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16m-7 6h7"
+              />
             )}
-          </div>
+          </svg>
+        </Button>
+        {isOpen && (
+          <MobileMenu
+            isLoggedIn={isLoggedIn}
+            userData={userData}
+            onLogout={userLogout}
+            router={router}
+          />
         )}
       </div>
     </header>

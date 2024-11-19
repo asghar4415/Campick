@@ -43,7 +43,7 @@ export default function UserNav() {
         });
       } catch (error) {
         console.error('Error fetching user data:', error);
-        router.push('/login'); // Redirect to login if user is unauthorized
+        router.push(''); // Redirect to login if user is unauthorized
       }
     };
 
