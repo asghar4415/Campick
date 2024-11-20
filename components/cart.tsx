@@ -44,9 +44,9 @@ const CartItems = () => {
         }
         return cartItem;
       })
-      .filter((item) => item !== null); // Remove null (removed items)
+      .filter((item) => item !== null);
 
-    setItems(updatedItems);
+    setItems(updatedItems.filter((item) => item !== null) as CartItem[]);
     localStorage.setItem('cartItems', JSON.stringify(updatedItems)); // Save updated cart to localStorage
   };
 
