@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import demoProduct from '@/public/demoimg.png';
+import Image from 'next/image';
 
 interface CartItem {
   name: string;
@@ -13,7 +14,6 @@ interface CartItem {
 }
 
 const CartItems = () => {
-  const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<CartItem[]>([]);
 
   useEffect(() => {
@@ -79,7 +79,7 @@ const CartItems = () => {
   const productImage = (item: CartItem) => {
     if (item.image_url && item.image_url.length > 0) {
       return (
-        <img
+        <Image
           alt={item.name}
           className="h-auto w-full object-cover"
           src={item.image_url}
