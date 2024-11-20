@@ -6,10 +6,20 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import Image from 'next/image';
+import { set } from 'date-fns';
 
-// Define the type for menu items and cart items
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+interface Shop {
+  id: string;
+  name: string;
+  description: string;
+  image_url: string;
+  contact_number: string;
+}
+
 interface MenuItem {
-  id: number;
+  item_id: string;
   name: string;
   description: string;
   price: number;
@@ -18,176 +28,227 @@ interface MenuItem {
 }
 
 interface CartItem extends MenuItem {
-  quantity: number; // Add quantity to CartItem
+  quantity: number;
 }
 
-export const MenuDisplay = forwardRef<
-  HTMLDivElement,
-  React.HTMLProps<HTMLDivElement> & {
-    cartItems: CartItem[]; // Update cartItems type to include quantity
-    setCartItems: React.Dispatch<React.SetStateAction<CartItem[]>>; // Update setCartItems to handle CartItem[]
-  }
->(({ cartItems, setCartItems }, ref) => {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [token, setToken] = useState<string | null>(null);
-  const { toast } = useToast();
-  const router = useRouter();
+interface MenuDisplayProps {
+  shop?: Shop; // Make shop optional since it can be restored from localStorage
+}
 
-  useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    setToken(storedToken);
-  }, []);
+export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
+  ({ shop }, ref) => {
+    const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [selectedShop, setSelectedShop] = useState<Shop | null>(null);
+    const [loading, setLoading] = useState(true);
+    const { toast } = useToast();
+    const router = useRouter();
 
-  useEffect(() => {
-    const fetchMenuItems = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/getOverAllMenuItems`
-        );
-        if (response.data.success) {
-          setMenuItems(response.data.items || []);
-        } else {
-          console.error('Error fetching menu items:', response.data.message);
+    useEffect(() => {
+      // Load shop details from localStorage if not passed via props
+      if (!shop) {
+        const storedShop = localStorage.getItem('selectedShop');
+        if (storedShop) {
+          setSelectedShop(JSON.parse(storedShop));
         }
-      } catch (error) {
-        console.error('Error fetching menu items:', error);
+      } else {
+        // Save the selected shop to localStorage
+        localStorage.setItem('selectedShop', JSON.stringify(shop));
+        setSelectedShop(shop);
       }
+    }, [shop]);
+
+    useEffect(() => {
+      const savedCart = localStorage.getItem('cartItems');
+      if (savedCart) {
+        setCartItems(JSON.parse(savedCart));
+      }
+    }, []);
+
+    useEffect(() => {
+      const handleCartChange = () => {
+        const savedCart = localStorage.getItem('cartItems');
+        const cartItems = savedCart ? JSON.parse(savedCart) : [];
+        window.dispatchEvent(
+          new CustomEvent('cartUpdated', { detail: cartItems.length })
+        );
+      };
+
+      handleCartChange(); // Trigger on initial load
+    }, [cartItems]); // You can remove the dependency on cartItems here if you just want to listen to changes in localStorage
+
+    useEffect(() => {
+      if (selectedShop) {
+        const fetchMenuItems = async () => {
+          try {
+            setLoading(true);
+            const response = await axios.get(
+              `${API_URL}/api/shop/${selectedShop.id}/getAllMenuItems`
+            );
+            setMenuItems(response.data.items || []);
+          } catch (error) {
+            console.error('Error fetching menu items:', error);
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        fetchMenuItems();
+      }
+    }, [selectedShop]);
+
+    const showLoginToast = () => {
+      toast({
+        style: {
+          backgroundColor: 'black',
+          color: 'white'
+        },
+        title: 'User not logged in',
+        description: 'You have to be logged in to perform this action',
+        action: (
+          <ToastAction
+            altText="Go to login page"
+            onClick={() => router.push('/signin')}
+          >
+            Sign in
+          </ToastAction>
+        )
+      });
     };
 
-    fetchMenuItems();
-  }, []);
-
-  const showLoginToast = () => {
-    toast({
-      style: {
-        backgroundColor: 'black',
-        color: 'white'
-      },
-      title: 'User not logged in',
-      description: 'You have to be logged in to perform this action',
-      action: (
-        <ToastAction
-          altText="Go to login page"
-          onClick={() => router.push('/signin')}
-        >
-          Sign in
-        </ToastAction>
-      )
-    });
-  };
-
-  const addToCart = (item: MenuItem) => {
-    if (!token) {
-      showLoginToast();
-      return;
-    }
-
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find((i) => i.id === item.id);
-      if (existingItem) {
-        const updatedItems = prevItems.map((i) =>
-          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
-        );
-        console.log('Updated Cart Items:', updatedItems); // Debug log
-        return updatedItems;
+    const addToCart = (item: MenuItem) => {
+      if (!localStorage.getItem('token')) {
+        showLoginToast();
+        return;
       }
-      const newItems = [...prevItems, { ...item, quantity: 1 }];
-      console.log('Updated Cart Items:', newItems); // Debug log
-      return newItems;
-    });
+      console.log('Adding item to cart:', item);
+      const updatedCart = (() => {
+        const existingItem = cartItems.find((i) => i.item_id === item.item_id);
+        if (existingItem) {
+          return cartItems.map((i) =>
+            i.item_id === item.item_id ? { ...i, quantity: i.quantity + 1 } : i
+          );
+        }
+        return [...cartItems, { ...item, quantity: 1 }];
+      })();
 
-    toast({
-      title: 'Item Added to Cart',
-      description: `${item.name} has been added to your cart.`
-    });
-  };
+      setCartItems(updatedCart);
+      localStorage.setItem('cartItems', JSON.stringify(updatedCart));
 
-  useEffect(() => {
-    console.log('Updated Cart Items:', cartItems);
-  }, [cartItems]);
+      toast({
+        title: 'Item added to cart',
+        description: `${item.name} added to cart`,
+        style: { backgroundColor: 'black', color: 'white' }
+      });
+    };
 
-  const removeFromCart = (item: MenuItem) => {
-    if (!token) {
-      showLoginToast();
-      return;
-    }
-
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find((i) => i.id === item.id);
-      if (existingItem?.quantity === 1) {
-        return prevItems.filter((i) => i.id !== item.id);
+    const removeFromCart = (item_id: string) => {
+      if (!localStorage.getItem('token')) {
+        showLoginToast();
+        return;
       }
-      return prevItems.map((i) =>
-        i.id === item.id ? { ...i, quantity: i.quantity - 1 } : i
+      const updatedCart = cartItems
+        .map((item) =>
+          item.item_id === item_id
+            ? { ...item, quantity: item.quantity - 1 }
+            : item
+        )
+        .filter((item) => item.quantity > 0);
+
+      setCartItems(updatedCart);
+      localStorage.setItem('cartItems', JSON.stringify(updatedCart));
+      const itemss = menuItems.find((i) => i.item_id === item_id);
+
+      toast({
+        title: `${itemss?.name} updated in cart`,
+        description: `${itemss?.name} updated in cart`,
+        style: { backgroundColor: 'black', color: 'white' }
+      });
+    };
+
+    useEffect(() => {}, [cartItems]);
+
+    if (!selectedShop) {
+      return (
+        <div>
+          <h3 className="text-xl font-semibold text-foreground">
+            Please select a shop to view its menu.
+          </h3>
+        </div>
       );
-    });
+    }
 
-    toast({
-      title: 'Item Removed from Cart',
-      description: `${item.name} has been removed from your cart.`
-    });
-  };
+    if (loading) {
+      return (
+        <h3 className="text-xl font-semibold text-foreground">
+          Loading menu items...
+        </h3>
+      );
+    }
 
-  return (
-    <div ref={ref} className="w-full py-10">
-      <div className="container mx-auto">
-        <h2 className="text-3xl md:text-3xl">Menu Items</h2>
-        <br />
+    return (
+      <div ref={ref} className="w-full py-10">
+        <div className="container mx-auto">
+          <h2 className="text-3xl md:text-3xl">Menu Items</h2>
+          <br />
 
-        <div className="flex flex-wrap gap-5">
-          {menuItems.length === 0 ? (
-            <h3 className="text-xl font-semibold text-foreground">
-              No menu items available
-            </h3>
-          ) : (
-            menuItems.map((item) => (
-              <div
-                className="relative flex w-full flex-col gap-2 rounded-md bg-muted p-4 shadow-md md:w-80" // Adjust width and padding
-                key={item.id}
-              >
-                <div className="mb-4 aspect-video rounded-md">
-                  {item.image && (
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      width={300} // Adjust width to fit better
-                      height={200} // Adjust height to match width
-                      className="rounded-md"
-                    />
-                  )}
+          <div className="flex flex-wrap gap-5">
+            {menuItems.length === 0 ? (
+              <h3 className="text-xl font-semibold text-foreground">
+                No menu items available
+              </h3>
+            ) : (
+              menuItems.map((item) => (
+                <div
+                  className="relative flex w-full flex-col gap-2 rounded-md bg-muted p-4 shadow-md md:w-80" // Adjust width and padding
+                  key={item.item_id}
+                >
+                  <div className="mb-4 aspect-video rounded-md">
+                    {item.image && (
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        width={300} // Adjust width to fit better
+                        height={200} // Adjust height to match width
+                        className="rounded-md"
+                      />
+                    )}
+                  </div>
+                  <h3 className="text-lg font-semibold tracking-tight md:text-xl">
+                    {item.name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {item.description}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Shop: {item.shop_name}
+                  </p>
+                  <p className="text-lg font-semibold">${item.price}</p>
+
+                  <div className="absolute bottom-4 right-4 flex gap-2">
+                    <button
+                      onClick={() => addToCart(item)}
+                      className="rounded-md bg-green-600 px-3 py-1 text-white hover:bg-green-700"
+                      aria-label={`Add ${item.name} to cart`}
+                    >
+                      +
+                    </button>
+
+                    <button
+                      onClick={() => removeFromCart(item.item_id)}
+                      className="rounded-md bg-red-600 px-3 py-1 text-white hover:bg-red-700"
+                    >
+                      -
+                    </button>
+                  </div>
                 </div>
-                <h3 className="text-lg font-semibold tracking-tight md:text-xl">
-                  {item.name}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {item.description}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Shop: {item.shop_name}
-                </p>
-                <p className="text-lg font-semibold">${item.price}</p>
-
-                <div className="absolute bottom-4 right-4 flex gap-2">
-                  <button
-                    onClick={() => addToCart(item)}
-                    className="rounded-md bg-green-600 px-3 py-1 text-white hover:bg-green-700"
-                  >
-                    +
-                  </button>
-                  <button
-                    onClick={() => removeFromCart(item)}
-                    className="rounded-md bg-red-600 px-3 py-1 text-white hover:bg-red-700"
-                  >
-                    -
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
+              ))
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 
 MenuDisplay.displayName = 'MenuDisplay';

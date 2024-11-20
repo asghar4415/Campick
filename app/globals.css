@@ -81,3 +81,17 @@
     height: 100dvh;
   }
 }
+
+/* Hide the scrollbar but keep scrolling */
+.checkout-sidebar-scrollable {
+  overflow-y: scroll;
+}
+
+.checkout-sidebar-scrollable::-webkit-scrollbar {
+  display: none; /* Hide the scrollbar */
+}
+
+.checkout-sidebar-scrollable {
+  -ms-overflow-style: none; /* Hide scrollbar for IE */
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+}
