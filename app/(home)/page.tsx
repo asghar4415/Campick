@@ -9,7 +9,6 @@ import { Footer1 } from '@/components/footer';
 import CheckoutSidebar from '@/components/cart-sidebar';
 import axios from 'axios';
 import Image from 'next/image';
-import { Button } from '@/components/ui/button';
 import demoImg from '@/public/demoimg.png';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
