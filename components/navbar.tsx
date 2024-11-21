@@ -16,11 +16,13 @@ import Image from 'next/image';
 import AdminSearch from '@/components/admin-search';
 import axios from 'axios';
 import MainLogo from '@/public/black logo.png';
+import { string } from 'zod';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface NavigationMenuDemoProps {
   isLoggedIn: boolean;
+  loading: boolean; // New prop
 }
 
 const UserMenu = ({
@@ -152,7 +154,36 @@ const MobileMenu = ({
   );
 };
 
-export const NavigationMenuDemo = ({ isLoggedIn }: NavigationMenuDemoProps) => {
+export const NavigationMenuDemo = ({
+  isLoggedIn,
+  loading
+}: NavigationMenuDemoProps) => {
+  useEffect(() => {
+    if (!loading) {
+      console.log('Is logged in:', isLoggedIn);
+      if (isLoggedIn) {
+        const token = localStorage.getItem('token');
+        if (token) {
+          fetchProfile(token);
+        } else {
+          console.error('Token not found in localStorage');
+        }
+      }
+    }
+  }, [isLoggedIn, loading]);
+
+  const fetchProfile = async (token: string) => {
+    try {
+      const response = await fetch('/api/profile', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      console.log('Profile data:', data);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
+
   const router = useRouter();
   const [isOpen, setOpen] = useState(false);
   const [scrolling, setScrolling] = useState(false);
@@ -164,7 +195,6 @@ export const NavigationMenuDemo = ({ isLoggedIn }: NavigationMenuDemoProps) => {
     image: ''
   });
   const [cartItemCount, setCartItemCount] = useState(0);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => setScrolling(window.scrollY > 0);
@@ -211,51 +241,6 @@ export const NavigationMenuDemo = ({ isLoggedIn }: NavigationMenuDemoProps) => {
       window.removeEventListener('cartUpdated', updateCartItemCount);
     };
   }, []);
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      const token = localStorage.getItem('token');
-
-      const fetchProfile = async () => {
-        console.log('Fetching user data...');
-        console.log('Token:', token);
-        try {
-          const response = await axios.get(`${API_URL}/api/profile`, {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
-          console.log('User data:', response.data);
-          setUserData({
-            email: response.data.email,
-            id: response.data.id,
-            role: response.data.role,
-            name: response.data.user_name,
-            image: response.data.image
-          });
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-          router.push('/');
-        }
-        setLoading(false);
-      };
-
-      fetchProfile();
-    } else {
-      setLoading(false);
-    }
-  }, [router]);
-
-  if (loading) {
-    return (
-      <div className="absolute bottom-0 left-0 right-0 top-0 z-10 flex items-center justify-center bg-white bg-opacity-50">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="h-16 w-16 animate-spin rounded-full border-b-4 border-t-4 border-blue-500"></div>
-          <h2 className="text-2xl font-semibold">Loading</h2>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <header

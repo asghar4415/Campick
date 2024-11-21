@@ -10,6 +10,7 @@ import CheckoutSidebar from '@/components/cart-sidebar';
 import axios from 'axios';
 import Image from 'next/image';
 import demoImg from '@/public/demoimg.png';
+import { set } from 'date-fns';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -25,6 +26,7 @@ export default function HomePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const router = useRouter();
   const shopsRef = useRef(null);
+  const [loading, setLoading] = useState(true);
 
   const [shops, setShops] = useState<Shop[]>([]);
   const [selectedShop, setSelectedShop] = useState<Shop | null>(null); // State to hold the selected shop
@@ -38,10 +40,15 @@ export default function HomePage() {
       } catch (error) {
         console.error('Error fetching shops:', error);
       }
+      setLoading(false);
     };
 
     fetchShops();
   }, []);
+
+  const handleShopClick = (shop: Shop) => {
+    setSelectedShop(shop); // Set the selected shop
+  };
 
   const setImage = (image_url: string) => {
     if (image_url) {
@@ -50,14 +57,10 @@ export default function HomePage() {
     return demoImg.src;
   };
 
-  const handleShopClick = (shop: Shop) => {
-    setSelectedShop(shop); // Set the selected shop
-  };
-
   useEffect(() => {
     async function authenticationCheck() {
       const token = localStorage.getItem('token');
-
+      console.log('Token:', token);
       if (token) {
         try {
           const payload = token.split('.')[1];
@@ -74,8 +77,6 @@ export default function HomePage() {
         } catch (error) {
           console.error('Error decoding the token:', error);
         }
-      } else {
-        setIsLoggedIn(false);
       }
     }
 
@@ -84,7 +85,11 @@ export default function HomePage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <NavigationMenuDemo isLoggedIn={isLoggedIn} />
+      <NavigationMenuDemo
+        isLoggedIn={isLoggedIn}
+        loading={!isLoggedIn && !localStorage.getItem('token')}
+      />
+
       <CheckoutSidebar />
       <div className="container mx-auto flex-1 overflow-auto px-4 py-8">
         <CTA1 shopsRef={shopsRef} />
