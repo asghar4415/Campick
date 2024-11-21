@@ -87,7 +87,7 @@ const CartItems = () => {
       );
     }
     return (
-      <img
+      <Image
         alt="product"
         className="h-auto w-full object-cover "
         src={demoProduct.src}
