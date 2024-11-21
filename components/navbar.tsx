@@ -14,16 +14,7 @@ import { MouseEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import AdminSearch from '@/components/admin-search';
-import axios from 'axios';
 import MainLogo from '@/public/black logo.png';
-import { string } from 'zod';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
-interface NavigationMenuDemoProps {
-  isLoggedIn: boolean;
-  loading: boolean; // New prop
-}
 
 const UserMenu = ({
   userData,
@@ -34,158 +25,33 @@ const UserMenu = ({
 }) => (
   <DropdownMenu>
     <DropdownMenuTrigger asChild>
-      <Button variant="secondary" size="icon" className="rounded-full">
+      <Button variant="outline2" size="icon" className="rounded-full">
         <CircleUser className="h-5 w-5" aria-label="User Profile" />
       </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end">
-      <DropdownMenuLabel>{userData.name || 'User'}</DropdownMenuLabel>
+      <DropdownMenuLabel>{userData.role || 'User'}</DropdownMenuLabel>
       <DropdownMenuItem>{userData.email || 'No email'}</DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem>Settings</DropdownMenuItem>
       <DropdownMenuItem>Support</DropdownMenuItem>
       <DropdownMenuItem>Orders</DropdownMenuItem>
-
       <DropdownMenuSeparator />
       <DropdownMenuItem onClick={onLogout}>Logout</DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>
 );
 
-const MobileMenu = ({
-  isLoggedIn,
-  userData,
-  onLogout,
-  router,
-  cartItemCount
-}: {
-  isLoggedIn: boolean;
-  userData: any;
-  onLogout: () => void;
-  router: any;
-  cartItemCount: number;
-}) => {
-  return (
-    <div className="absolute right-0 top-20 w-full bg-background px-8 py-4 shadow-lg lg:hidden">
-      {isLoggedIn ? (
-        <div className="flex flex-col items-end gap-4">
-          {/* Cart Section */}
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              const currentState = JSON.parse(
-                localStorage.getItem('cartSidebarState') || 'false'
-              );
-              const newState = !currentState;
-              localStorage.setItem(
-                'cartSidebarState',
-                JSON.stringify(newState)
-              );
-              window.dispatchEvent(new CustomEvent('cartToggle'));
-            }}
-            className="relative flex w-full items-center justify-center text-left"
-          >
-            <ShoppingCart className="mr-2 h-5 w-5" aria-label="Shopping Cart" />
-            Cart
-            {cartItemCount > 0 && (
-              <div
-                className="absolute right-0 top-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white md:text-sm"
-                style={{ transform: 'translate(25%, -25%)' }}
-              >
-                {cartItemCount}
-              </div>
-            )}
-          </button>
-
-          {/* Profile Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline2"
-                size="icon"
-                className="w-full text-left"
-              >
-                <CircleUser
-                  className="mr-2 h-5 w-5"
-                  aria-label="User Profile"
-                />
-                Profile
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-full">
-              <DropdownMenuLabel>{userData.name || 'User'}</DropdownMenuLabel>
-              <DropdownMenuItem>
-                {userData.email || 'No email'}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
-              <DropdownMenuItem>Orders</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={onLogout}>Logout</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Notifications */}
-          <Button
-            variant="outline2"
-            size="icon"
-            className="flex w-full items-center text-left"
-          >
-            <Bell className="mr-2 h-5 w-5" aria-label="Notifications" />
-            Notifications
-          </Button>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-4">
-          <Button
-            variant="outline"
-            onClick={() => router.push('/signin')}
-            className="w-full"
-          >
-            Sign in
-          </Button>
-          <Button onClick={() => router.push('/signup')} className="w-full">
-            Sign up
-          </Button>
-        </div>
-      )}
-    </div>
-  );
-};
-
 export const NavigationMenuDemo = ({
   isLoggedIn,
-  loading
-}: NavigationMenuDemoProps) => {
-  useEffect(() => {
-    if (!loading) {
-      console.log('Is logged in:', isLoggedIn);
-      if (isLoggedIn) {
-        const token = localStorage.getItem('token');
-        if (token) {
-          fetchProfile(token);
-        } else {
-          console.error('Token not found in localStorage');
-        }
-      }
-    }
-  }, [isLoggedIn, loading]);
-
-  const fetchProfile = async (token: string) => {
-    try {
-      const response = await fetch('/api/profile', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await response.json();
-      console.log('Profile data:', data);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    }
-  };
-
+  loading,
+  onLogout
+}: {
+  isLoggedIn: boolean;
+  loading: boolean;
+  onLogout: () => void;
+}) => {
   const router = useRouter();
-  const [isOpen, setOpen] = useState(false);
   const [scrolling, setScrolling] = useState(false);
   const [userData, setUserData] = useState({
     email: '',
@@ -203,12 +69,17 @@ export const NavigationMenuDemo = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const user = JSON.parse(atob(token.split('.')[1]));
+      console.log('User:', user);
+      setUserData(user);
+    }
+  }, []);
+
   const userLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('cartItems');
-    localStorage.removeItem('cartSidebarState');
-    localStorage.removeItem('selectedShop');
-    localStorage.removeItem('shop');
+    localStorage.clear(); // Clear all local storage keys on logout
     setUserData({
       email: '',
       id: null,
@@ -216,7 +87,7 @@ export const NavigationMenuDemo = ({
       name: '',
       image: ''
     });
-    router.push('/'); // This will handle redirection
+    onLogout(); // Ensure the parent updates `isLoggedIn` to `false`.
   };
 
   const toggleSideCart = (e: MouseEvent<HTMLButtonElement>) => {
@@ -229,66 +100,57 @@ export const NavigationMenuDemo = ({
     window.dispatchEvent(new CustomEvent('cartToggle'));
   };
 
-  useEffect(() => {
-    const updateCartItemCount = (event: any) => {
-      setCartItemCount(event.detail); // The cart item count comes from event.detail
-    };
-
-    window.addEventListener('cartUpdated', updateCartItemCount);
-
-    // Cleanup the event listener on component unmount
-    return () => {
-      window.removeEventListener('cartUpdated', updateCartItemCount);
-    };
-  }, []);
-
   return (
     <header
       className={`fixed left-0 top-0 z-40 w-full bg-background transition-shadow duration-300 ${
         scrolling ? 'shadow-md' : 'shadow-none'
       }`}
     >
-      <div className="container relative mx-auto flex min-h-20 flex-row items-center gap-4 lg:grid lg:grid-cols-3">
-        {/* Left Menu */}
-        <div className="hidden flex-row items-center justify-start gap-4 lg:flex">
-          <div className="w-full flex-grow border lg:w-auto lg:flex-1">
-            <AdminSearch />
-          </div>
+      <div className="container relative mx-auto flex min-h-20 flex-row items-center justify-between gap-4 px-4 lg:px-8">
+        {/* Left Section: Search (Hidden on Small Screens) */}
+        <div className="hidden lg:flex lg:flex-1">
+          <AdminSearch />
         </div>
 
-        {/* Center Logo */}
-        <div
-          className="flex w-full justify-center hover:cursor-pointer lg:w-auto"
-          onClick={() => router.push('/')}
-        >
-          <Image src={MainLogo} alt="Logo" width={140} height={70} priority />
+        {/* Middle Section: Logo */}
+        <div className="flex justify-center lg:flex-1">
+          <Image
+            src={MainLogo}
+            alt="Logo"
+            width={150}
+            height={80}
+            priority
+            className="cursor-pointer"
+            onClick={() => router.push('/')}
+          />
         </div>
 
-        {/* Right Section */}
-        <div className="hidden w-full justify-end gap-4 lg:flex">
-          <button
-            onClick={toggleSideCart}
-            className="relative rounded-md bg-transparent p-2"
-          >
-            <ShoppingCart className="h-5 w-5" aria-label="Shopping Cart" />
-            {cartItemCount > 0 && (
-              <div
-                className="absolute right-0 top-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white md:text-sm"
-                style={{ transform: 'translate(25%, -25%)' }}
-              >
-                {cartItemCount}
-              </div>
-            )}
-          </button>
-
-          {isLoggedIn ? (
+        {/* Right Section: Icons */}
+        <div className="flex items-center justify-end lg:flex-1 lg:gap-4">
+          {isLoggedIn && (
             <>
+              <Button
+                onClick={toggleSideCart}
+                className="relative rounded-full bg-transparent p-2"
+                variant="outline2"
+              >
+                <ShoppingCart className="h-5 w-5" aria-label="Shopping Cart" />
+                {cartItemCount > 0 && (
+                  <div
+                    className="absolute right-0 top-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white md:text-sm"
+                    style={{ transform: 'translate(25%, -25%)' }}
+                  >
+                    {cartItemCount}
+                  </div>
+                )}
+              </Button>
               <UserMenu userData={userData} onLogout={userLogout} />
-              <Button variant="secondary" size="icon" className="rounded-full">
+              <Button variant="outline2" size="icon" className="rounded-full">
                 <Bell className="h-5 w-5" aria-label="Notifications" />
               </Button>
             </>
-          ) : (
+          )}
+          {!isLoggedIn && (
             <>
               <Button variant="outline" onClick={() => router.push('/signin')}>
                 Sign in
@@ -297,47 +159,6 @@ export const NavigationMenuDemo = ({
             </>
           )}
         </div>
-
-        {/* Mobile Section */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="lg:hidden"
-          onClick={() => setOpen(!isOpen)}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            {isOpen ? (
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            ) : (
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16m-7 6h7"
-              />
-            )}
-          </svg>
-        </Button>
-        {isOpen && (
-          <MobileMenu
-            isLoggedIn={isLoggedIn}
-            userData={userData}
-            onLogout={userLogout}
-            router={router}
-            cartItemCount={cartItemCount}
-          />
-        )}
       </div>
     </header>
   );

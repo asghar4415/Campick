@@ -101,9 +101,7 @@ const CartItems = () => {
         <p className="text-sm text-gray-700">
           <strong>Description:</strong> {item.description}
         </p>
-        <p className="text-sm text-gray-700">
-          <strong>Shop Name:</strong> {item.shop_name}
-        </p>
+        <p className="text-sm text-gray-700"></p>
       </div>
     );
   };

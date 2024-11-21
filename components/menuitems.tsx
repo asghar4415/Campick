@@ -23,7 +23,7 @@ interface MenuItem {
   description: string;
   price: number;
   image: string;
-  shop_name: string;
+  shop_id: string;
 }
 
 interface CartItem extends MenuItem {
@@ -85,6 +85,7 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
               `${API_URL}/api/shop/${selectedShop.id}/getAllMenuItems`
             );
             setMenuItems(response.data.items || []);
+            // console.log(response)
           } catch (error) {
             console.error('Error fetching menu items:', error);
           } finally {
@@ -93,6 +94,14 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
         };
 
         fetchMenuItems();
+      }
+    }, [selectedShop]);
+
+    useEffect(() => {
+      if (selectedShop) {
+        // Clear cart when shop changes
+        setCartItems([]);
+        localStorage.removeItem('cartItems');
       }
     }, [selectedShop]);
 
@@ -117,10 +126,27 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
 
     const addToCart = (item: MenuItem) => {
       if (!localStorage.getItem('token')) {
-        showLoginToast();
+        showLoginToast(); // Show login prompt if the user is not logged in
         return;
       }
+
+      // Check if items from a different shop are already in the cart
+      const isSameShop = cartItems.every(
+        (cartItem) => cartItem.shop_id === item.shop_id
+      );
+
+      if (!isSameShop) {
+        toast({
+          title: 'Error',
+          description: 'You can only add items from the same shop to the cart.',
+          style: { backgroundColor: 'red', color: 'white' }
+        });
+        return;
+      }
+
       console.log('Adding item to cart:', item);
+
+      // Only add items of the same shop
       const updatedCart = (() => {
         const existingItem = cartItems.find((i) => i.item_id === item.item_id);
         if (existingItem) {
@@ -143,9 +169,24 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
 
     const removeFromCart = (item_id: string) => {
       if (!localStorage.getItem('token')) {
-        showLoginToast();
+        showLoginToast(); // Show login prompt if the user is not logged in
         return;
       }
+
+      const itemToRemove = cartItems.find((item) => item.item_id === item_id);
+      if (!itemToRemove) return; // If the item is not found, return early
+
+      // Check if the item belongs to the same shop
+      if (itemToRemove.shop_id !== selectedShop?.id) {
+        toast({
+          title: 'Error',
+          description: 'You can only remove items from the current shop.',
+          style: { backgroundColor: 'red', color: 'white' }
+        });
+        return;
+      }
+
+      // Update the cart, decrement the quantity, and remove the item if quantity is 0
       const updatedCart = cartItems
         .map((item) =>
           item.item_id === item_id
@@ -156,6 +197,7 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
 
       setCartItems(updatedCart);
       localStorage.setItem('cartItems', JSON.stringify(updatedCart));
+
       const itemss = menuItems.find((i) => i.item_id === item_id);
 
       toast({
@@ -164,8 +206,6 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
         style: { backgroundColor: 'black', color: 'white' }
       });
     };
-
-    useEffect(() => {}, [cartItems]);
 
     if (!selectedShop) {
       return (
@@ -219,9 +259,7 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
                   <p className="text-sm text-muted-foreground">
                     {item.description}
                   </p>
-                  <p className="text-sm text-muted-foreground">
-                    Shop: {item.shop_name}
-                  </p>
+
                   <p className="text-lg font-semibold">${item.price}</p>
 
                   <div className="absolute bottom-4 right-4 flex gap-2">
