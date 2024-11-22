@@ -16,12 +16,22 @@ import Image from 'next/image';
 import AdminSearch from '@/components/admin-search';
 import MainLogo from '@/public/black logo.png';
 
+interface UserData {
+  email: string;
+  id: number | null;
+  role: string;
+  name: string;
+  image: string;
+}
+
 const UserMenu = ({
   userData,
-  onLogout
+  onLogout,
+  onOrdersClick
 }: {
   userData: any;
   onLogout: () => void;
+  onOrdersClick: () => void;
 }) => (
   <DropdownMenu>
     <DropdownMenuTrigger asChild>
@@ -35,7 +45,7 @@ const UserMenu = ({
       <DropdownMenuSeparator />
       <DropdownMenuItem>Settings</DropdownMenuItem>
       <DropdownMenuItem>Support</DropdownMenuItem>
-      <DropdownMenuItem>Orders</DropdownMenuItem>
+      <DropdownMenuItem onClick={onOrdersClick}>Orders</DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem onClick={onLogout}>Logout</DropdownMenuItem>
     </DropdownMenuContent>
@@ -53,14 +63,41 @@ export const NavigationMenuDemo = ({
 }) => {
   const router = useRouter();
   const [scrolling, setScrolling] = useState(false);
-  const [userData, setUserData] = useState({
+  const [userData, setUserData] = useState<UserData>({
     email: '',
     id: null,
     role: '',
     name: '',
     image: ''
   });
+
   const [cartItemCount, setCartItemCount] = useState(0);
+
+  useEffect(() => {
+    const savedCart = localStorage.getItem('cartItems');
+
+    if (savedCart) {
+      setCartItemCount(JSON.parse(savedCart).length);
+    }
+
+    const updateCartItemCount = (event: CustomEvent) => {
+      const count = event.detail;
+      setCartItemCount(count > 0 ? count : 0);
+    };
+
+    window.addEventListener(
+      'cartUpdated',
+      updateCartItemCount as EventListener
+    );
+
+    // Cleanup listener when component unmounts
+    return () => {
+      window.removeEventListener(
+        'cartUpdated',
+        updateCartItemCount as EventListener
+      );
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setScrolling(window.scrollY > 0);
@@ -73,7 +110,7 @@ export const NavigationMenuDemo = ({
     const token = localStorage.getItem('token');
     if (token) {
       const user = JSON.parse(atob(token.split('.')[1]));
-      console.log('User:', user);
+      // console.log('User:', user);
       setUserData(user);
     }
   }, []);
@@ -98,6 +135,10 @@ export const NavigationMenuDemo = ({
     const newState = !currentState;
     localStorage.setItem('cartSidebarState', JSON.stringify(newState));
     window.dispatchEvent(new CustomEvent('cartToggle'));
+  };
+
+  const onOrdersClick = () => {
+    router.push('/orders');
   };
 
   return (
@@ -126,7 +167,7 @@ export const NavigationMenuDemo = ({
         </div>
 
         {/* Right Section: Icons */}
-        <div className="flex items-center justify-end lg:flex-1 lg:gap-4">
+        <div className="flex items-center justify-end gap-2 lg:flex-1 lg:gap-4">
           {isLoggedIn && (
             <>
               <Button
@@ -144,7 +185,11 @@ export const NavigationMenuDemo = ({
                   </div>
                 )}
               </Button>
-              <UserMenu userData={userData} onLogout={userLogout} />
+              <UserMenu
+                userData={userData}
+                onLogout={userLogout}
+                onOrdersClick={onOrdersClick}
+              />
               <Button variant="outline2" size="icon" className="rounded-full">
                 <Bell className="h-5 w-5" aria-label="Notifications" />
               </Button>

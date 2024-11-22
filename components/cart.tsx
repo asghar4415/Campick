@@ -10,7 +10,7 @@ interface CartItem {
   price: number;
   shop_name: string;
   shop_id: string;
-  image_url: string;
+  image: string;
 }
 
 const CartItems = () => {
@@ -46,7 +46,7 @@ const CartItems = () => {
       })
       .filter((item) => item !== null);
 
-    setItems(updatedItems.filter((item) => item !== null) as CartItem[]);
+    setItems(updatedItems.filter((item) => item !== null) as CartItem[]); // Update state
     localStorage.setItem('cartItems', JSON.stringify(updatedItems)); // Save updated cart to localStorage
   };
 
@@ -76,32 +76,12 @@ const CartItems = () => {
     );
   };
 
-  const productImage = (item: CartItem) => {
-    if (item.image_url && item.image_url.length > 0) {
-      return (
-        <Image
-          alt={item.name}
-          className="h-auto w-full object-cover"
-          src={item.image_url}
-        />
-      );
-    }
-    return (
-      <Image
-        alt="product"
-        className="h-auto w-full object-cover "
-        src={demoProduct.src}
-      />
-    );
-  };
-
   const productVariants = (item: CartItem) => {
     return (
       <div className="mt-2">
         <p className="text-sm text-gray-700">
           <strong>Description:</strong> {item.description}
         </p>
-        <p className="text-sm text-gray-700"></p>
       </div>
     );
   };
@@ -127,7 +107,15 @@ const CartItems = () => {
       <ul className="space-y-4 border-b pb-4">
         {items.map((item, index) => (
           <li className="flex p-4" key={'cartItem-' + index}>
-            <div className="w-1/4">{productImage(item)}</div>
+            <div className="w-1/4">
+              <Image
+                src={demoProduct}
+                alt={item.name}
+                width={300}
+                height={200}
+                className="rounded-md"
+              />
+            </div>
             <div className="w-3/4 pl-4">
               <div className="flex items-center justify-between">
                 <h6 className="font-semibold">{item.name}</h6>

@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import Image from 'next/image';
+import demoImg from '@/public/demoimg.png';
+import { is } from 'date-fns/locale';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -31,7 +33,7 @@ interface CartItem extends MenuItem {
 }
 
 interface MenuDisplayProps {
-  shop?: Shop; // Make shop optional since it can be restored from localStorage
+  shop?: Shop;
 }
 
 export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
@@ -43,20 +45,20 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
     const { toast } = useToast();
     const router = useRouter();
 
+    // Load shop details from localStorage or props
     useEffect(() => {
-      // Load shop details from localStorage if not passed via props
       if (!shop) {
         const storedShop = localStorage.getItem('selectedShop');
         if (storedShop) {
           setSelectedShop(JSON.parse(storedShop));
         }
       } else {
-        // Save the selected shop to localStorage
         localStorage.setItem('selectedShop', JSON.stringify(shop));
         setSelectedShop(shop);
       }
     }, [shop]);
 
+    // Load cart items from localStorage
     useEffect(() => {
       const savedCart = localStorage.getItem('cartItems');
       if (savedCart) {
@@ -64,18 +66,16 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
       }
     }, []);
 
+    // Handle cart changes and update the global state
     useEffect(() => {
-      const handleCartChange = () => {
-        const savedCart = localStorage.getItem('cartItems');
-        const cartItems = savedCart ? JSON.parse(savedCart) : [];
-        window.dispatchEvent(
-          new CustomEvent('cartUpdated', { detail: cartItems.length })
-        );
-      };
+      const savedCart = localStorage.getItem('cartItems');
+      const cartItems = savedCart ? JSON.parse(savedCart) : [];
+      window.dispatchEvent(
+        new CustomEvent('cartUpdated', { detail: cartItems.length })
+      );
+    }, [cartItems]);
 
-      handleCartChange(); // Trigger on initial load
-    }, [cartItems]); // You can remove the dependency on cartItems here if you just want to listen to changes in localStorage
-
+    // Fetch menu items when the shop is selected
     useEffect(() => {
       if (selectedShop) {
         const fetchMenuItems = async () => {
@@ -85,7 +85,6 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
               `${API_URL}/api/shop/${selectedShop.id}/getAllMenuItems`
             );
             setMenuItems(response.data.items || []);
-            // console.log(response)
           } catch (error) {
             console.error('Error fetching menu items:', error);
           } finally {
@@ -97,20 +96,18 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
       }
     }, [selectedShop]);
 
+    // Clear cart when shop changes
     useEffect(() => {
       if (selectedShop) {
-        // Clear cart when shop changes
         setCartItems([]);
         localStorage.removeItem('cartItems');
       }
     }, [selectedShop]);
 
+    // Show login toast if not logged in
     const showLoginToast = () => {
       toast({
-        style: {
-          backgroundColor: 'black',
-          color: 'white'
-        },
+        style: { backgroundColor: 'black', color: 'white' },
         title: 'User not logged in',
         description: 'You have to be logged in to perform this action',
         action: (
@@ -126,67 +123,47 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
 
     const addToCart = (item: MenuItem) => {
       if (!localStorage.getItem('token')) {
-        showLoginToast(); // Show login prompt if the user is not logged in
+        showLoginToast();
         return;
       }
 
-      // Check if items from a different shop are already in the cart
+      // Ensure cart items are from the same shop
       const isSameShop = cartItems.every(
         (cartItem) => cartItem.shop_id === item.shop_id
       );
-
       if (!isSameShop) {
         toast({
           title: 'Error',
-          description: 'You can only add items from the same shop to the cart.',
+          description: 'You can only add items from the same shop.',
           style: { backgroundColor: 'red', color: 'white' }
         });
         return;
       }
 
-      console.log('Adding item to cart:', item);
-
-      // Only add items of the same shop
-      const updatedCart = (() => {
-        const existingItem = cartItems.find((i) => i.item_id === item.item_id);
-        if (existingItem) {
-          return cartItems.map((i) =>
+      // Update or add item to cart
+      const updatedCart = cartItems.some((i) => i.item_id === item.item_id)
+        ? cartItems.map((i) =>
             i.item_id === item.item_id ? { ...i, quantity: i.quantity + 1 } : i
-          );
-        }
-        return [...cartItems, { ...item, quantity: 1 }];
-      })();
+          )
+        : [...cartItems, { ...item, quantity: 1 }];
 
       setCartItems(updatedCart);
       localStorage.setItem('cartItems', JSON.stringify(updatedCart));
 
+      updateCartCount(updatedCart); // Dispatch the updated cart item count
       toast({
-        title: 'Item added to cart',
-        description: `${item.name} added to cart`,
-        style: { backgroundColor: 'black', color: 'white' }
+        title: 'success',
+        description: 'Item added to cart',
+        style: { backgroundColor: 'green', color: 'white' }
       });
     };
 
     const removeFromCart = (item_id: string) => {
       if (!localStorage.getItem('token')) {
-        showLoginToast(); // Show login prompt if the user is not logged in
+        showLoginToast();
         return;
       }
 
-      const itemToRemove = cartItems.find((item) => item.item_id === item_id);
-      if (!itemToRemove) return; // If the item is not found, return early
-
-      // Check if the item belongs to the same shop
-      if (itemToRemove.shop_id !== selectedShop?.id) {
-        toast({
-          title: 'Error',
-          description: 'You can only remove items from the current shop.',
-          style: { backgroundColor: 'red', color: 'white' }
-        });
-        return;
-      }
-
-      // Update the cart, decrement the quantity, and remove the item if quantity is 0
       const updatedCart = cartItems
         .map((item) =>
           item.item_id === item_id
@@ -198,22 +175,20 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
       setCartItems(updatedCart);
       localStorage.setItem('cartItems', JSON.stringify(updatedCart));
 
-      const itemss = menuItems.find((i) => i.item_id === item_id);
+      updateCartCount(updatedCart); // Dispatch the updated cart item count
+    };
 
-      toast({
-        title: `${itemss?.name} updated in cart`,
-        description: `${itemss?.name} updated in cart`,
-        style: { backgroundColor: 'black', color: 'white' }
-      });
+    const updateCartCount = (cartItems: CartItem[]) => {
+      window.dispatchEvent(
+        new CustomEvent('cartUpdated', { detail: cartItems.length })
+      );
     };
 
     if (!selectedShop) {
       return (
-        <div>
-          <h3 className="text-xl font-semibold text-foreground">
-            Please select a shop to view its menu.
-          </h3>
-        </div>
+        <h3 className="text-xl font-semibold text-foreground">
+          Please select a shop to view its menu.
+        </h3>
       );
     }
 
@@ -230,7 +205,6 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
         <div className="container mx-auto">
           <h2 className="text-3xl md:text-3xl">Menu Items</h2>
           <br />
-
           <div className="flex flex-wrap gap-5">
             {menuItems.length === 0 ? (
               <h3 className="text-xl font-semibold text-foreground">
@@ -239,19 +213,17 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
             ) : (
               menuItems.map((item) => (
                 <div
-                  className="relative flex w-full flex-col gap-2 rounded-md bg-muted p-4 shadow-md md:w-80" // Adjust width and padding
+                  className="relative flex w-full flex-col gap-2 rounded-md bg-muted p-4 shadow-md md:w-80"
                   key={item.item_id}
                 >
                   <div className="mb-4 aspect-video rounded-md">
-                    {item.image && (
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        width={300} // Adjust width to fit better
-                        height={200} // Adjust height to match width
-                        className="rounded-md"
-                      />
-                    )}
+                    <Image
+                      src={demoImg}
+                      alt={item.name}
+                      width={300}
+                      height={200}
+                      className="rounded-md"
+                    />
                   </div>
                   <h3 className="text-lg font-semibold tracking-tight md:text-xl">
                     {item.name}
@@ -259,9 +231,7 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
                   <p className="text-sm text-muted-foreground">
                     {item.description}
                   </p>
-
                   <p className="text-lg font-semibold">${item.price}</p>
-
                   <div className="absolute bottom-4 right-4 flex gap-2">
                     <button
                       onClick={() => addToCart(item)}
@@ -270,7 +240,6 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
                     >
                       +
                     </button>
-
                     <button
                       onClick={() => removeFromCart(item.item_id)}
                       className="rounded-md bg-red-600 px-3 py-1 text-white hover:bg-red-700"

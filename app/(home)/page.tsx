@@ -33,7 +33,6 @@ export default function HomePage() {
     // Access localStorage only after the component mounts
     const token = localStorage.getItem('token');
     setIsLoggedIn(!!token); // Set isLoggedIn to true if the token exists
-    setLoading(false); // Stop loading after checking localStorage
   }, []);
 
   // Fetch shops data from the API
@@ -42,7 +41,7 @@ export default function HomePage() {
       try {
         const response = await axios.get(`${API_URL}/api/getAllShops`);
         setShops(response.data);
-        console.log('Shops:', response.data);
+        // console.log('Shops:', response.data);
       } catch (error) {
         console.error('Error fetching shops:', error);
       }
@@ -66,7 +65,7 @@ export default function HomePage() {
   useEffect(() => {
     async function authenticationCheck() {
       const token = localStorage.getItem('token');
-      console.log('Token:', token);
+      // console.log('Token:', token);
       if (token) {
         try {
           const payload = token.split('.')[1];
@@ -113,11 +112,12 @@ export default function HomePage() {
         <div className="w-full pt-20 lg:py-10">
           {loading ? (
             <div className="flex items-center justify-center">
-              {/* Loading Spinner */}
-              <div
-                className="spinner-border inline-block h-8 w-8 animate-spin rounded-full border-4"
-                role="status"
-              ></div>
+              <div className="flex h-screen items-center justify-center">
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="h-16 w-16 animate-spin rounded-full border-b-4 border-t-4 border-blue-500"></div>
+                  <h2 className="text-2xl font-semibold">Loading</h2>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="container mx-auto flex flex-col gap-14">
@@ -137,11 +137,10 @@ export default function HomePage() {
                   >
                     <div className="mb-4 aspect-video rounded-md bg-muted">
                       <Image
-                        src={setImage(shop.image_url)}
+                        src={demoImg}
                         alt={shop.name}
                         width={300}
                         height={200}
-                        objectFit="cover"
                         className="rounded-md"
                       />
                     </div>

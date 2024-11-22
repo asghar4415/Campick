@@ -6,17 +6,28 @@ import CartItems from './cart';
 const CheckoutSidebar = () => {
   const [cartState, setCartState] = useState(false);
   const [items, setItems] = useState([]);
+  const [cartItemCount, setCartItemCount] = useState(0);
 
   const router = useRouter();
+
   useEffect(() => {
+    // Sync cart state from localStorage
     const savedState = JSON.parse(
       localStorage.getItem('cartSidebarState') || 'false'
     );
     setCartState(savedState);
 
+    // Sync cart items from localStorage
+    const savedItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
+    setItems(savedItems);
+    setCartItemCount(savedItems.length);
+
     const updateItems = () => {
-      const items = JSON.parse(localStorage.getItem('cartItems') || '[]');
-      setItems(items);
+      const updatedItems = JSON.parse(
+        localStorage.getItem('cartItems') || '[]'
+      );
+      setItems(updatedItems);
+      setCartItemCount(updatedItems.length);
     };
 
     const handleCartToggle = () => {
@@ -43,7 +54,9 @@ const CheckoutSidebar = () => {
 
   const emptyHandler = () => {
     setItems([]);
+    setCartItemCount(0);
     localStorage.setItem('cartItems', JSON.stringify([]));
+    window.dispatchEvent(new CustomEvent('cartUpdated', { detail: 0 }));
     closeHandler();
   };
 
@@ -68,8 +81,6 @@ const CheckoutSidebar = () => {
       >
         <div className="flex items-center justify-between border-b p-4">
           <h2 className="text-lg font-semibold">Cart</h2>
-          {/* animated icon */}
-
           <button
             className="text-gray-500 hover:text-gray-700"
             onClick={closeHandler}
@@ -82,12 +93,10 @@ const CheckoutSidebar = () => {
           {items.length > 0 ? (
             <>
               <div className="mt-6 flex flex-col gap-4">
-                <CartItems />
-
+                <CartItems /> {/* Pass items to CartItems component */}
                 <Button variant="default" onClick={gotoCheckout}>
                   Proceed to Checkout
                 </Button>
-
                 <Button variant="outline" onClick={emptyHandler}>
                   🗑️ Empty Cart
                 </Button>

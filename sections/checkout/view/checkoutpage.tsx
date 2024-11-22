@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import CartItems from '@/components/cart';
 import { NavigationMenuDemo } from '@/components/navbar';
 import axios from 'axios';
+import { useToast } from '@/hooks/use-toast';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -38,6 +39,7 @@ export default function Checkout() {
   const [modalVisible, setModalVisible] = useState<boolean>(false); // State for modal visibility
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<any>(null); // Type `any` can be improved
+  const { toast } = useToast();
 
   useEffect(() => {
     // Check if running on the client side
@@ -69,13 +71,13 @@ export default function Checkout() {
   }
 
   const fetchShopPaymentDetails = async (shopId: string) => {
-    console.log('Shop ID:', shopId);
+    // console.log('Shop ID:', shopId);
     try {
       const response = await axios.get(
         `${API_URL}/api/shop/${shopId}/payment-details`
       );
       setShopPaymentDetails(response.data.methods[0]);
-      console.log('Shop Payment Details:', response.data.methods[0]);
+      // console.log('Shop Payment Details:', response.data.methods[0]);
     } catch (error) {
       console.error('Error fetching shop payment details:', error);
     }
@@ -98,17 +100,18 @@ export default function Checkout() {
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0]; // Use optional chaining to avoid undefined errors
-    console.log('File:', file);
+    // console.log('File:', file);
     if (!file) return;
 
     const formData = new FormData();
     formData.append('image', file);
+    // console.log('Form Data:', formData);
 
     setIsUploading(true);
     try {
       const response = await axios.post(`${API_URL}/api/imageupload`, formData);
       setUploadedImage(response.data.data);
-      console.log('Image uploaded:', response.data);
+      // console.log('Image uploaded:', response.data);
     } catch (error) {
       console.error('Upload error:', error);
     } finally {
@@ -117,6 +120,8 @@ export default function Checkout() {
   };
 
   const handleSubmit = async () => {
+    console.log('Submitting payment proof');
+    console.log('Uploaded Image:', uploadedImage);
     if (!uploadedImage) {
       console.log('Please upload a payment screenshot'); // Change this to a toast or alert
       return;
@@ -132,18 +137,29 @@ export default function Checkout() {
     try {
       // Verify payment and create order
       const response = await axios.post(
-        '/verifyPaymentAndCreateOrder',
+        `${API_URL}/api/verifyPaymentAndCreateOrder`,
         PaymentData,
         {
           headers: {
-            'Content-Type': 'application/json'
+            Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         }
       );
-      console.log(response.data);
+
+      console.log('Payment verification response:', response.data);
 
       if (response.data.status === 'success') {
-        console.log('Payment verified and order placed successfully');
+        toast({
+          title: 'Payment Verified',
+          description: 'Your payment has been verified successfully',
+          style: { backgroundColor: 'green', color: 'white' }
+        });
+        // Empty cart after successful payment
+        localStorage.setItem('cartItems', JSON.stringify([]));
+        setItems([]);
+        setCartTotal(0);
+        setTotalUniqueItems(0);
+        setModalVisible(false);
       } else {
         console.log('Payment verification failed. Please try again.'); // Change this to a toast or alert
       }
@@ -159,57 +175,59 @@ export default function Checkout() {
         loading={loading}
         onLogout={handleLogout}
       />
-      {loading ? (
-        <div className="absolute bottom-0 left-0 right-0 top-0 z-10 flex items-center justify-center bg-white bg-opacity-50">
-          <div className="flex flex-col items-center space-y-4">
-            <div className="h-16 w-16 animate-spin rounded-full border-b-4 border-t-4 border-blue-500"></div>
-            <h2 className="text-2xl font-semibold">Loading</h2>
-          </div>
-        </div>
-      ) : (
-        <div className="mt-12 flex min-h-screen w-full flex-col items-center justify-center bg-gray-50 p-6 lg:flex-row">
-          <div className="w-full max-w-3xl flex-1 p-4 ">
-            <div className="border-b p-2 text-center">
-              <h2 className="text-2xl font-semibold">Cart</h2>
-            </div>
-
-            {/* Content scrollable area */}
-            <div className="checkout-sidebar-scrollable max-h-[calc(100vh-10rem)] overflow-y-auto p-4">
-              {items.length > 0 ? (
-                <CartItems /> // Pass items prop to CartItems component
-              ) : (
-                !loading && (
-                  <h5 className="text-center text-gray-500">
-                    No items in cart
-                  </h5>
-                )
-              )}
-            </div>
-
-            {/* Action buttons */}
-            <div className="mt-4 space-y-4">
-              <Button
-                variant="default"
-                onClick={createCheckout}
-                className="w-full"
-              >
-                Proceed to Checkout
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={() => {
-                  localStorage.setItem('cartItems', JSON.stringify([]));
-                  setItems([]); // Empty cart on click
-                }}
-                className="w-full"
-              >
-                🗑️ Empty Cart
-              </Button>
+      <div className="container mx-auto flex-1 overflow-auto px-4 py-8">
+        {loading ? (
+          <div className="absolute bottom-0 left-0 right-0 top-0 z-10 flex items-center justify-center bg-white bg-opacity-50">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="h-16 w-16 animate-spin rounded-full border-b-4 border-t-4 border-blue-500"></div>
+              <h2 className="text-2xl font-semibold">Loading</h2>
             </div>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="mt-12 flex min-h-screen w-full flex-col items-center justify-center bg-gray-50 p-6 lg:flex-row">
+            <div className="w-full max-w-3xl flex-1 p-4 ">
+              <div className="border-b p-2 text-center">
+                <h2 className="text-2xl font-semibold">Cart</h2>
+              </div>
+
+              {/* Content scrollable area */}
+              <div className="checkout-sidebar-scrollable max-h-[calc(100vh-10rem)] overflow-y-auto p-4">
+                {items.length > 0 ? (
+                  <CartItems /> // Pass items prop to CartItems component
+                ) : (
+                  !loading && (
+                    <h5 className="text-center text-gray-500">
+                      No items in cart
+                    </h5>
+                  )
+                )}
+              </div>
+
+              {/* Action buttons */}
+              <div className="mt-4 space-y-4">
+                <Button
+                  variant="default"
+                  onClick={createCheckout}
+                  className="w-full"
+                >
+                  Proceed to Checkout
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    localStorage.setItem('cartItems', JSON.stringify([]));
+                    setItems([]); // Empty cart on click
+                  }}
+                  className="w-full"
+                >
+                  🗑️ Empty Cart
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Modal for Payment Proof */}
       {modalVisible && (
