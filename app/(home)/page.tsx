@@ -30,7 +30,6 @@ export default function HomePage() {
   const [selectedShop, setSelectedShop] = useState<Shop | null>(null); // Tracks the selected shop
 
   useEffect(() => {
-    // Access localStorage only after the component mounts
     const token = localStorage.getItem('token');
     setIsLoggedIn(!!token); // Set isLoggedIn to true if the token exists
   }, []);
@@ -45,7 +44,7 @@ export default function HomePage() {
       } catch (error) {
         console.error('Error fetching shops:', error);
       }
-      setLoading(false); // Set loading to false after fetching
+      setLoading(false);
     };
 
     fetchShops();
@@ -127,6 +126,14 @@ export default function HomePage() {
                 </h4>
               </div>
               <div className="-mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:mt-0 lg:grid-cols-4">
+                {shops.length === 0 && (
+                  <div className="flex w-full">
+                    <h3 className="text-xl font-semibold text-foreground">
+                      No shops available
+                    </h3>
+                  </div>
+                )}
+
                 {shops.map((shop) => (
                   <div
                     key={shop.id} // Key for rendering efficiency
@@ -162,11 +169,13 @@ export default function HomePage() {
         {selectedShop ? (
           <MenuDisplay ref={shopsRef} shop={selectedShop} />
         ) : (
-          <div className="flex h-96 w-full items-center justify-center">
-            <h3 className="text-xl font-semibold text-foreground">
-              Select a shop to view their menu
-            </h3>
-          </div>
+          shops.length > 0 && (
+            <div className="flex w-full items-center justify-center">
+              <h3 className="text-xl font-semibold text-foreground">
+                Select a shop to view their menu
+              </h3>
+            </div>
+          )
         )}
       </div>
       <Footer1 />
