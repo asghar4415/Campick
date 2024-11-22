@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { NavigationMenuDemo } from '@/components/navbar';
 import { CTA1 } from '@/components/cta';
 import { MenuDisplay } from '@/components/menuitems';
@@ -29,17 +29,8 @@ export default function HomePage() {
   const [selectedShop, setSelectedShop] = useState<Shop | null>(null); // Tracks the selected shop
 
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  useEffect(() => {
-    const token = searchParams.get('token');
-    if (token) {
-      localStorage.setItem('token', token);
-      router.push('/'); // Redirect to home
-    }
-  }, [searchParams, router]);
-
-  const isTokenValid = (token) => {
+  const isTokenValid = (token: string) => {
     try {
       const { exp } = JSON.parse(atob(token.split('.')[1]));
       return Date.now() < exp * 1000; // Check if the token is still valid
