@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { NavigationMenuDemo } from '@/components/navbar';
 import { CTA1 } from '@/components/cta';
 import { MenuDisplay } from '@/components/menuitems';
@@ -23,19 +23,21 @@ interface Shop {
 
 export default function HomePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Tracks user authentication
-  const router = useRouter();
   const shopsRef = useRef(null);
   const [loading, setLoading] = useState(true); // Controls loading state
   const [shops, setShops] = useState<Shop[]>([]); // Stores shop data
   const [selectedShop, setSelectedShop] = useState<Shop | null>(null); // Tracks the selected shop
 
-  const { token } = router.query;
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
+    const token = searchParams.get('token');
     if (token) {
       localStorage.setItem('token', token);
+      router.push('/'); // Redirect to home
     }
-  }, [token]);
+  }, [searchParams, router]);
 
   const isTokenValid = (token) => {
     try {
@@ -46,11 +48,6 @@ export default function HomePage() {
       return false;
     }
   };
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token); // Set isLoggedIn to true if the token exists
-  }, []);
 
   // Fetch shops data from the API
   useEffect(() => {
