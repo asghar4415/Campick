@@ -29,6 +29,24 @@ export default function HomePage() {
   const [shops, setShops] = useState<Shop[]>([]); // Stores shop data
   const [selectedShop, setSelectedShop] = useState<Shop | null>(null); // Tracks the selected shop
 
+  const { token } = router.query;
+
+  useEffect(() => {
+    if (token) {
+      localStorage.setItem('token', token);
+    }
+  }, [token]);
+
+  const isTokenValid = (token) => {
+    try {
+      const { exp } = JSON.parse(atob(token.split('.')[1]));
+      return Date.now() < exp * 1000; // Check if the token is still valid
+    } catch (error) {
+      console.error('Invalid token:', error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     setIsLoggedIn(!!token); // Set isLoggedIn to true if the token exists
@@ -64,8 +82,8 @@ export default function HomePage() {
   useEffect(() => {
     async function authenticationCheck() {
       const token = localStorage.getItem('token');
-      // console.log('Token:', token);
-      if (token) {
+
+      if (token && isTokenValid(token)) {
         try {
           const payload = token.split('.')[1];
           const parsedToken = JSON.parse(atob(payload));
@@ -81,6 +99,10 @@ export default function HomePage() {
         } catch (error) {
           console.error('Error decoding the token:', error);
         }
+      } else {
+        localStorage.removeItem('token');
+        setIsLoggedIn(false);
+        router.push('/'); // Redirect to login if invalid
       }
     }
 
