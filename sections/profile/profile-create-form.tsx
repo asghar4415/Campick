@@ -10,12 +10,37 @@ import {
 import { Heading } from '@/components/ui/heading';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { useEffect, useState } from 'react';
+import { useEffect, useReducer } from 'react';
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import axios from 'axios';
 import defaultImage from '@/public/shopowner.webp';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+type StateType = {
+  firstname: string;
+  lastname: string;
+  email: string;
+  imageURL: string;
+  isEditing: boolean;
+  isUploading: boolean;
+  imagePreview: string;
+};
+
+type ActionType =
+  | { type: 'SET_FIELD'; field: keyof StateType; value: any }
+  | { type: 'RESET_FIELDS'; payload: Partial<StateType> };
+
+function reducer(state: StateType, action: ActionType): StateType {
+  switch (action.type) {
+    case 'SET_FIELD':
+      return { ...state, [action.field]: action.value };
+    case 'RESET_FIELDS':
+      return { ...state, ...action.payload };
+    default:
+      return state;
+  }
+}
 
 export default function ProfileCreateForm({
   data
@@ -27,14 +52,17 @@ export default function ProfileCreateForm({
     imageURL: string;
   };
 }) {
-  const [dataFetched, setDataFetched] = useState({
+  const initialState: StateType = {
     firstname: '',
     lastname: '',
-    email: '',
-    imageURL: ''
-  });
-  const [isEditing, setIsEditing] = useState(false);
-  const [imagePreview, setImagePreview] = useState(data.imageURL);
+    email: data.email,
+    imageURL: data.imageURL || defaultImage.src,
+    isEditing: false,
+    isUploading: false,
+    imagePreview: data.imageURL || defaultImage.src
+  };
+
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   const methods = useForm({
     defaultValues: {
@@ -42,59 +70,36 @@ export default function ProfileCreateForm({
       lastname: '',
       email: data.email
     },
-    mode: 'onSubmit' // Validation will run when form is submitted
+    mode: 'onSubmit'
   });
 
   useEffect(() => {
-    const separateFullname = () => {
-      const name = data.user_name.split(' ');
-      setDataFetched({
-        firstname: name[0],
-        lastname: name[1],
+    const nameParts = data.user_name.split(' ');
+    dispatch({
+      type: 'RESET_FIELDS',
+      payload: {
+        firstname: nameParts[0] || '',
+        lastname: nameParts[1] || '',
         email: data.email,
         imageURL: data.imageURL
-      });
-    };
-
-    separateFullname();
+      }
+    });
   }, [data]);
 
-  // When dataFetched is updated, reset the form with the new values
-  useEffect(() => {
-    if (dataFetched.firstname || dataFetched.lastname || dataFetched.email) {
-      methods.reset({
-        firstname: dataFetched.firstname,
-        lastname: dataFetched.lastname,
-        email: dataFetched.email
-      });
+  const handleEditClick = async () => {
+    if (state.isEditing) {
+      await updateProfile();
     }
-  }, [dataFetched, methods]);
-
-  const handleEditClick = () => {
-    setIsEditing(!isEditing);
+    dispatch({
+      type: 'SET_FIELD',
+      field: 'isEditing',
+      value: !state.isEditing
+    });
   };
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file); // Create a URL for the uploaded image
-      setImagePreview(imageUrl); // Update the preview image with the new URL
-
-      // Update the dataFetched with the new image URL
-      setDataFetched((prevState) => ({
-        ...prevState,
-        imageURL: imageUrl // Ensure the image URL is set
-      }));
-    }
-  };
-
-  // Handle input changes for firstname, lastname, and email
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setDataFetched((prevState) => ({
-      ...prevState,
-      [name]: value // Update the specific field in dataFetched
-    }));
+    dispatch({ type: 'SET_FIELD', field: name as keyof StateType, value });
   };
 
   const updateProfile = async () => {
@@ -103,19 +108,14 @@ export default function ProfileCreateForm({
       return;
     }
 
-    const user_name = `${dataFetched.firstname || ''} ${
-      dataFetched.lastname || ''
-    }`;
-    const email = dataFetched.email || '';
-    const imageURL = dataFetched.imageURL || '';
-
     try {
-      const update = await axios.put(
+      const user_name = `${state.firstname} ${state.lastname}`;
+      await axios.put(
         `${API_URL}/api/updateProfile`,
         {
-          user_name: user_name,
-          email: email,
-          image_url: imageURL
+          user_name,
+          email: state.email,
+          image_url: state.imageURL
         },
         {
           headers: {
@@ -128,23 +128,47 @@ export default function ProfileCreateForm({
     }
   };
 
-  const onSubmit = async (formData: any) => {
-    formData.imageURL = dataFetched.imageURL; // Ensure the imageURL is included in the form data
-    await updateProfile(); // Update the profile
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    dispatch({ type: 'SET_FIELD', field: 'isUploading', value: true });
+
+    try {
+      const response = await axios.post(`${API_URL}/api/imageupload`, formData);
+      if (response.data?.data?.url) {
+        dispatch({
+          type: 'RESET_FIELDS',
+          payload: {
+            imagePreview: response.data.data.url,
+            imageURL: response.data.data.url
+          }
+        });
+      } else {
+        throw new Error('Image upload failed.');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+    } finally {
+      dispatch({ type: 'SET_FIELD', field: 'isUploading', value: false });
+    }
   };
 
-  const selectImagePreview = () => {
-    // if (imagePreview) {
-    //   return imagePreview;
-    // } else if (dataFetched.imageURL) {
-    //   return dataFetched.imageURL;
-    // } else {
-    return defaultImage.src;
+  const selectImagePreview = () =>
+    state.imagePreview || state.imageURL || defaultImage;
+
+  const onSubmit = async () => {
+    await updateProfile();
   };
 
   return (
     <FormProvider {...methods}>
-      <div className="flex items-center justify-between ">
+      <div className="flex items-center justify-between">
         <Heading title="Profile" description="Manage your profile details" />
       </div>
 
@@ -171,18 +195,13 @@ export default function ProfileCreateForm({
                     render={({ field }) => (
                       <Input
                         {...field}
-                        disabled={!isEditing}
-                        value={methods.watch('firstname')}
-                        onChange={handleInputChange} // Add the change handler here
+                        disabled={!state.isEditing}
+                        value={state.firstname}
+                        onChange={handleInputChange}
                       />
                     )}
                   />
                 </FormControl>
-                <FormMessage>
-                  {methods.formState.errors.firstname && (
-                    <span>{methods.formState.errors.firstname.message}</span>
-                  )}
-                </FormMessage>
               </FormItem>
 
               <FormItem>
@@ -194,18 +213,13 @@ export default function ProfileCreateForm({
                     render={({ field }) => (
                       <Input
                         {...field}
-                        disabled={!isEditing}
-                        value={methods.watch('lastname')}
-                        onChange={handleInputChange} // Add the change handler here
+                        disabled={!state.isEditing}
+                        value={state.lastname}
+                        onChange={handleInputChange}
                       />
                     )}
                   />
                 </FormControl>
-                <FormMessage>
-                  {methods.formState.errors.lastname && (
-                    <span>{methods.formState.errors.lastname.message}</span>
-                  )}
-                </FormMessage>
               </FormItem>
 
               <FormItem>
@@ -225,36 +239,36 @@ export default function ProfileCreateForm({
                     render={({ field }) => (
                       <Input
                         {...field}
-                        disabled={!isEditing}
-                        value={methods.watch('email')}
-                        onChange={handleInputChange} // Add the change handler here
+                        disabled={!state.isEditing}
+                        value={state.email}
+                        onChange={handleInputChange}
                       />
                     )}
                   />
                 </FormControl>
-                <FormMessage>
-                  {methods.formState.errors.email && (
-                    <span>{methods.formState.errors.email.message}</span>
-                  )}
-                </FormMessage>
               </FormItem>
 
-              {/* Image Upload Input */}
-              {isEditing && (
+              {state.isEditing && (
                 <FormItem>
                   <FormLabel>Profile Image</FormLabel>
                   <FormControl>
-                    <Input
+                    <input
                       type="file"
                       accept="image/*"
-                      onChange={handleImageChange}
+                      onChange={handleImageUpload}
+                      className="w-full"
                     />
                   </FormControl>
                 </FormItem>
               )}
 
-              <Button variant="outline" size="sm" onClick={handleEditClick}>
-                {isEditing ? 'Save Changes' : 'Edit Profile'}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleEditClick}
+                disabled={state.isUploading}
+              >
+                {state.isEditing ? 'Save Changes' : 'Edit Profile'}
               </Button>
             </div>
           </div>

@@ -23,33 +23,42 @@ const Loader = () => (
   </div>
 );
 
+const ErrorMessage = ({ message }: { message: string }) => (
+  <div className="flex h-screen items-center justify-center">
+    <h2 className="text-2xl font-semibold text-red-500">{message}</h2>
+  </div>
+);
+
 export default function ProfileViewPage() {
-  const [data, setData] = useState({
+  const [data, setData] = useState<{
+    id: string | null;
+    user_name: string;
+    email: string;
+    imageURL: string;
+  }>({
     id: null,
     user_name: '',
     email: '',
     imageURL: ''
   });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('No token found. Redirecting to login...');
-        setLoading(false);
-        router.push('/');
-        return;
-      }
-
       try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('No token found. Redirecting to login...');
+        }
+
         const profileResponse = await axios.get(`${API_URL}/api/profile`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
+
         setData(profileResponse.data);
       } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -58,7 +67,11 @@ export default function ProfileViewPage() {
               'Failed to fetch data. Please try again.'
           );
         } else {
-          setError('An unexpected error occurred.');
+          setError(
+            error instanceof Error
+              ? error.message
+              : 'An unexpected error occurred.'
+          );
         }
       } finally {
         setLoading(false);
@@ -66,15 +79,10 @@ export default function ProfileViewPage() {
     };
 
     fetchDashboardData();
-  }, []);
+  }, [router]);
 
   if (loading) return <Loader />;
-  if (error)
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <h2 className="text-2xl font-semibold text-red-500">{error}</h2>
-      </div>
-    );
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <PageContainer scrollable={true}>

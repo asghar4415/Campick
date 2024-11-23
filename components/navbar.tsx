@@ -43,7 +43,7 @@ const UserMenu = ({
       <DropdownMenuLabel>{userData.role || 'User'}</DropdownMenuLabel>
       <DropdownMenuItem>{userData.email || 'No email'}</DropdownMenuItem>
       <DropdownMenuSeparator />
-      <DropdownMenuItem>Settings</DropdownMenuItem>
+      {/* <DropdownMenuItem>Settings</DropdownMenuItem> */}
       <DropdownMenuItem>Support</DropdownMenuItem>
       <DropdownMenuItem onClick={onOrdersClick}>Orders</DropdownMenuItem>
       <DropdownMenuSeparator />

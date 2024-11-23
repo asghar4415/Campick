@@ -1,62 +1,101 @@
+'use client';
+
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import PageContainer from '@/components/layout/page-container';
-import EmployeeTable from '../employee-tables';
-import { buttonVariants } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
-import { Employee } from '@/constants/data';
-import { fakeUsers } from '@/constants/mock-api';
-import { searchParamsCache } from '@/lib/searchparams';
-import { cn } from '@/lib/utils';
-import { Plus } from 'lucide-react';
-import Link from 'next/link';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+import OrderDetailsPage from '../employee-tables';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+interface OrderDetails {
+  order_id: string;
+  created_at: string;
+  status: string;
+  total_price: number;
+  payment_status: string;
+  user_id: string;
+  user_name: string;
+  email: string;
+}
+
+interface OrderItems {
+  id: number;
+  item_id: string;
+  item_name: string;
+  quantity: number;
+  price: number;
+  order_id: string;
+}
 
 const breadcrumbItems = [
-  { title: 'Dashboard', link: '/dashboard' },
-  { title: 'Employee', link: '/dashboard/employee' }
+  { title: 'Dashboard', link: '/shopdashboard' },
+  { title: 'Orders', link: '/shopdashboard/orders' }
 ];
 
-type TEmployeeListingPage = {};
+export default function EmployeeListingPage() {
+  const [totalOrders, setTotalOrders] = useState<number>(0);
+  const [orders, setOrders] = useState<OrderDetails[]>([]);
+  const [orderItems, setOrderItems] = useState<OrderItems[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-export default async function EmployeeListingPage({}: TEmployeeListingPage) {
-  // Showcasing the use of search params cache in nested RSCs
-  const page = searchParamsCache.get('page');
-  const search = searchParamsCache.get('q');
-  const gender = searchParamsCache.get('gender');
-  const pageLimit = searchParamsCache.get('limit');
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const fetchOrders = async () => {
+        try {
+          const response = await axios.get(`${API_URL}/api/listShopOrders`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+          console.log(response.data.orders);
+          setOrders(response.data.orders);
+          setTotalOrders(response.data.orders.length);
+          var orderItems = [];
+          for (let i = 0; i < response.data.orders.length; i++) {
+            orderItems.push(response.data.orders[i].items);
+          }
+          setOrderItems(orderItems.flat());
+        } catch (error) {
+          console.error('Error fetching orders:', error);
+        }
+        setLoading(false);
+      };
+      fetchOrders();
+    }
+  }, []);
 
-  const filters = {
-    page,
-    limit: pageLimit,
-    ...(search && { search }),
-    ...(gender && { genders: gender })
-  };
-
-  // mock api call
-  const data = await fakeUsers.getUsers(filters);
-  const totalUsers = data.total_users;
-  const employee: Employee[] = data.users;
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-16 w-16 animate-spin rounded-full border-b-4 border-t-4 border-blue-500"></div>
+          <h2 className="text-2xl font-semibold">Loading</h2>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <PageContainer>
       <div className="space-y-4">
         <Breadcrumbs items={breadcrumbItems} />
-
         <div className="flex items-start justify-between">
           <Heading
-            title={`Employee (${totalUsers})`}
-            description="Manage employees (Server side table functionalities.)"
+            title={`Orders (${totalOrders})`}
+            description="Manage Orders (Confirm, Reject, Cancel)"
           />
-
-          <Link
-            href={'/dashboard/employee/new'}
-            className={cn(buttonVariants({ variant: 'default' }))}
-          >
-            <Plus className="mr-2 h-4 w-4" /> Add New
-          </Link>
         </div>
         <Separator />
-        <EmployeeTable data={employee} totalData={totalUsers} />
+        <OrderDetailsPage
+          data={orders}
+          totalData={totalOrders}
+          orderItems={orderItems}
+        />
       </div>
     </PageContainer>
   );

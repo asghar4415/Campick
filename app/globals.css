@@ -95,3 +95,21 @@
   -ms-overflow-style: none; /* Hide scrollbar for IE */
   scrollbar-width: none; /* Hide scrollbar for Firefox */
 }
+
+@layer utilities {
+  .blink {
+    animation: blink-animation 1s ease-in-out infinite;
+  }
+
+  @keyframes blink-animation {
+    0% {
+      opacity: 1; /* Full opacity at the start */
+    }
+    50% {
+      opacity: 0.5; /* Low opacity at the middle */
+    }
+    100% {
+      opacity: 1; /* Back to full opacity at the end */
+    }
+  }
+}

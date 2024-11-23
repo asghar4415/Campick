@@ -7,7 +7,6 @@ import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import Image from 'next/image';
 import demoImg from '@/public/demoimg.png';
-import { is } from 'date-fns/locale';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 

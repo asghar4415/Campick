@@ -13,8 +13,15 @@ import {
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import { set } from 'date-fns';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+interface Recentsales {
+  email: string;
+  user_name: string;
+  total_price: number;
+}
 
 export default function OverViewPage() {
   const [data, setData] = useState({
@@ -24,9 +31,9 @@ export default function OverViewPage() {
   });
   const [dashboardData, setDashboardData] = useState({
     revenue: 0,
-    shopDetails: [],
-    recentOrders: []
+    shopDetails: []
   });
+  const [recentOrders, setRecentOrders] = useState<Recentsales[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -40,46 +47,44 @@ export default function OverViewPage() {
       }
 
       try {
+        // Fetch shops
         const shopsResponse = await axios.get(`${API_URL}/api/ownerShops`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          headers: { Authorization: `Bearer ${token}` }
         });
-        // console.log('Shops response:', shopsResponse.data);
         const shops = shopsResponse.data.shops;
 
         if (shops.length > 0) {
           const shopId = shops[0].id;
+
+          // Fetch dashboard data
           const dashboardResponse = await axios.get(
             `${API_URL}/api/shopDashboard/${shopId}`,
             {
-              headers: {
-                Authorization: `Bearer ${token}`
-              }
+              headers: { Authorization: `Bearer ${token}` }
             }
           );
-          // console.log('Dashboard response:', dashboardResponse.data);
+
           setDashboardData({
             revenue: dashboardResponse.data.revenue,
-            shopDetails: shops,
-            recentOrders: dashboardResponse.data.recentOrders
+            shopDetails: shops
           });
+          setRecentOrders(dashboardResponse.data.recentOrders);
         } else {
           setError('No shops found for this owner.');
         }
 
+        // Fetch profile data
         const profileResponse = await axios.get(`${API_URL}/api/profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          headers: { Authorization: `Bearer ${token}` }
         });
-        // console.log('Profile response:', profileResponse.data);
+
         setData({
           id: profileResponse.data.id,
           user_name: profileResponse.data.user_name,
           email: profileResponse.data.email
         });
-      } catch (error) {
+      } catch (err) {
+        console.error(err);
         setError('Failed to fetch data. Please try again.');
       } finally {
         setLoading(false);
@@ -87,7 +92,7 @@ export default function OverViewPage() {
     };
 
     fetchDashboardData();
-  }, []); // Run once when the component mounts
+  }, []);
 
   if (loading) {
     return (
@@ -105,7 +110,7 @@ export default function OverViewPage() {
       <PageContainer scrollable={false}>
         <div className="flex items-center justify-between space-y-2">
           <h2 className="text-2xl font-bold tracking-tight">
-            Hi, {data.user_name}
+            Hi, {data.user_name || 'User'}
           </h2>
         </div>
         <div className="flex h-screen items-center justify-center">
@@ -136,33 +141,15 @@ export default function OverViewPage() {
                   <div className="text-2xl font-bold">
                     Rs. {dashboardData.revenue}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    +20.1% from last month
-                  </p>
                 </CardContent>
               </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Subscriptions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">+2350</div>
-                  <p className="text-xs text-muted-foreground">
-                    +180.1% from last month
-                  </p>
-                </CardContent>
-              </Card>
+
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Sales</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">+12,234</div>
-                  <p className="text-xs text-muted-foreground">
-                    +19% from last month
-                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -174,11 +161,11 @@ export default function OverViewPage() {
                 <CardHeader>
                   <CardTitle>Recent Sales</CardTitle>
                   <CardDescription>
-                    You made 265 sales this month.
+                    You made {recentOrders.length} sales this month.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <RecentSales />
+                  <RecentSales recentOrders={recentOrders} />
                 </CardContent>
               </Card>
             </div>
