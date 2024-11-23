@@ -16,7 +16,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const [isVerified, setIsVerified] = useState(false);
+  const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -43,8 +43,8 @@ export default function DashboardLayout({
   }, [router]);
 
   useEffect(() => {
+    setLoading(true);
     const getUserData = async () => {
-      setLoading(true);
       const token = localStorage.getItem('token');
       try {
         const { data } = await axios.get(`${API_URL}/api/profile`, {
@@ -67,7 +67,7 @@ export default function DashboardLayout({
     <div className="flex min-h-screen">
       <Sidebar />
       <main className="relative w-full flex-1">
-        {loading ? <div></div> : isVerified ? <></> : <VerifyEmailModal />}
+        {isVerified === false && !loading ? <VerifyEmailModal /> : null}
         <Header />
         {children}
       </main>

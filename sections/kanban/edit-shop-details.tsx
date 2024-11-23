@@ -38,6 +38,9 @@ export default function EditShopDetails({
 }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const [newShop, setNewShop] = useState({
     name: '',
     description: '',
@@ -50,12 +53,11 @@ export default function EditShopDetails({
     payment_details: ''
   });
 
-  // Effect to initialize newShop only if shopData changes or is provided
   useEffect(() => {
     if (shopData && shopData.name !== newShop.name) {
       setNewShop(shopData);
     }
-  }, [shopData]); // No need to depend on newShop here
+  }, [shopData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -65,24 +67,11 @@ export default function EditShopDetails({
     }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewShop((prev) => ({
-          ...prev,
-          image_url: reader.result as string
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleEditShopDetails = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setLoading(true);
 
     const token = localStorage.getItem('token');
     if (!token) {
@@ -100,12 +89,35 @@ export default function EditShopDetails({
           }
         }
       );
-      // console.log('Edit shop details response:', response.data);
-
       setSuccess('Shop details updated successfully.');
       window.location.reload();
     } catch (error) {
       setError('Failed to update shop details. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    setIsUploading(true);
+    try {
+      const response = await axios.post(`${API_URL}/api/imageupload`, formData);
+      setNewShop((prev) => ({
+        ...prev,
+        image_url: response.data.data.url // Assuming the uploaded image URL is in response.data.data.url
+      }));
+    } catch (error) {
+      console.error('Upload error:', error);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -151,18 +163,18 @@ export default function EditShopDetails({
             />
             <div className="col-span-4">
               <label>Upload Image</label>
-              <Input
+              <input
                 type="file"
                 accept="image/*"
-                onChange={handleFileChange}
-                className="col-span-4"
+                onChange={handleImageUpload}
+                className="w-full"
               />
               {newShop.image_url && (
-                <div className="mt-2">
+                <div className="mb-4">
                   <img
                     src={newShop.image_url}
-                    alt="Selected"
-                    className="h-auto w-full"
+                    alt="Uploaded Image"
+                    className="w-40 rounded-lg"
                   />
                 </div>
               )}
@@ -234,8 +246,13 @@ export default function EditShopDetails({
         {error && <div className="text-red-500">{error}</div>}
         {success && <div className="text-green-500">{success}</div>}
         <DialogFooter>
-          <Button type="submit" size="sm" form="edit-shop-form">
-            Edit Details
+          <Button
+            type="submit"
+            size="sm"
+            form="edit-shop-form"
+            disabled={isUploading || loading}
+          >
+            {isUploading || loading ? 'Uploading...' : 'Update Shop'}
           </Button>
         </DialogFooter>
       </DialogContent>

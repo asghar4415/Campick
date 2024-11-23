@@ -23,8 +23,8 @@ interface MenuItem {
   name: string;
   description: string;
   price: number;
-  image: string;
   shop_id: string;
+  image_url: string;
 }
 
 interface CartItem extends MenuItem {
@@ -183,9 +183,13 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
       );
     };
 
+    const setImage = (image_url: string) => {
+      return image_url || demoImg.src;
+    };
+
     if (!selectedShop) {
       return (
-        <h3 className="text-xl font-semibold text-foreground">
+        <h3 className="text-md mt-8 text-center font-semibold text-foreground">
           Please select a shop to view its menu.
         </h3>
       );
@@ -193,7 +197,7 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
 
     if (loading) {
       return (
-        <h3 className="text-xl font-semibold text-foreground">
+        <h3 className="text-md mt-8 text-center font-semibold text-foreground">
           Loading menu items...
         </h3>
       );
@@ -206,7 +210,7 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
           <br />
           <div className="flex flex-wrap gap-5">
             {menuItems.length === 0 ? (
-              <h3 className="text-xl font-semibold text-foreground">
+              <h3 className="text-md mt-8 text-center font-semibold text-foreground">
                 No menu items available
               </h3>
             ) : (
@@ -217,7 +221,7 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
                 >
                   <div className="mb-4 aspect-video rounded-md">
                     <Image
-                      src={demoImg}
+                      src={setImage(item.image_url)}
                       alt={item.name}
                       width={300}
                       height={200}

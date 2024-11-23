@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { NavigationMenuDemo } from '@/components/navbar';
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -41,9 +42,13 @@ export default function Checkout() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [fetchingOrderDetails, setFetchingOrderDetails] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/');
+    }
     setIsLoggedIn(!!token);
     setLoading(false);
   }, []);
@@ -160,15 +165,19 @@ export default function Checkout() {
                     Order ID: {order.order_id}
                   </p>
                   <span
-                    className={`text-sm font-medium ${
-                      order.status === 'Delivered'
-                        ? 'text-green-600'
-                        : order.status === 'Pending'
-                        ? 'text-yellow-600'
-                        : 'text-red-600'
+                    className={`text-sm font-semibold ${
+                      order.status === 'preparing'
+                        ? 'text-yellow-500'
+                        : order.status === 'accepted'
+                        ? 'text-green-500'
+                        : order.status === 'rejected'
+                        ? 'text-red-500'
+                        : order.status === 'delivered'
+                        ? 'text-blue-500'
+                        : 'text-gray-500'
                     }`}
                   >
-                    {order.status}
+                    {order.status.toUpperCase()}
                   </span>
                 </div>
                 <div className="text-sm text-gray-600">

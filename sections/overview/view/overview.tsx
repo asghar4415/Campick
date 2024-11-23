@@ -149,7 +149,9 @@ export default function OverViewPage() {
                   <CardTitle className="text-sm font-medium">Sales</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">+12,234</div>
+                  <div className="text-2xl font-bold">
+                    +{recentOrders.length}
+                  </div>
                 </CardContent>
               </Card>
             </div>

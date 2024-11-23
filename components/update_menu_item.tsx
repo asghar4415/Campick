@@ -63,7 +63,6 @@ export function UpdateMenuItem({
         setError('Authentication token not found. Please log in again.');
         return;
       }
-      // console.log('editingMenuItem:', editingMenuItem);
       await axios.put(
         `${API_URL}/api/shop/${shopId}/updateMenuItem/${editingMenuItem.id}`,
         editingMenuItem,
@@ -73,7 +72,6 @@ export function UpdateMenuItem({
           }
         }
       );
-      // console.log('response:', response);
       setSuccess('Menu item updated successfully!');
 
       window.location.reload();

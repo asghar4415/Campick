@@ -6,7 +6,8 @@ const nextConfig = {
       'api.slingacademy.com',
       'www.com',
       'example.com',
-      'anotherdomain.com'
+      'anotherdomain.com',
+      'res.cloudinary.com'
     ]
   }
 };

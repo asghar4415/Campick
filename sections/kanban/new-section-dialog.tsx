@@ -33,6 +33,8 @@ export default function NewSectionDialog() {
   });
   const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState<any>(null);
 
   const checkUserVerification = async () => {
     setLoading(true);
@@ -102,6 +104,26 @@ export default function NewSectionDialog() {
     }
   };
 
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    setIsUploading(true);
+    try {
+      const response = await axios.post(`${API_URL}/api/imageupload`, formData);
+      setUploadedImage(response.data.data);
+    } catch (error) {
+      console.error('Upload error:', error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -139,28 +161,21 @@ export default function NewSectionDialog() {
               placeholder="Shop Description..."
               required
             />
-            <Input
+            <input
               type="file"
               accept="image/*"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  const formData = new FormData();
-                  formData.append('file', file);
-                  formData.append('upload_preset', 'your_upload_preset');
-
-                  try {
-                    const response = await axios.post(
-                      'https://api.cloudinary.com/v1_1/your_cloud_name/image/upload',
-                      formData
-                    );
-                    handleInputChange('image_url', response.data.secure_url);
-                  } catch {
-                    setError('Image upload failed.');
-                  }
-                }
-              }}
+              onChange={handleImageUpload}
+              className="w-full"
             />
+            {uploadedImage && (
+              <div className="mb-4">
+                <img
+                  src={uploadedImage.url}
+                  alt="Payment Screenshot"
+                  className="w-40 rounded-lg"
+                />
+              </div>
+            )}
             <Input
               id="email"
               value={newShop.email}
@@ -168,6 +183,7 @@ export default function NewSectionDialog() {
               placeholder="Email..."
               required
             />
+
             <Input
               id="contact_number"
               value={newShop.contact_number}

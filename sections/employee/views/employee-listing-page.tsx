@@ -52,7 +52,6 @@ export default function EmployeeListingPage() {
               Authorization: `Bearer ${token}`
             }
           });
-          console.log(response.data.orders);
           setOrders(response.data.orders);
           setTotalOrders(response.data.orders.length);
           var orderItems = [];

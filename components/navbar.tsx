@@ -110,7 +110,7 @@ export const NavigationMenuDemo = ({
     const token = localStorage.getItem('token');
     if (token) {
       const user = JSON.parse(atob(token.split('.')[1]));
-      // console.log('User:', user);
+
       setUserData(user);
     }
   }, []);
@@ -195,7 +195,7 @@ export const NavigationMenuDemo = ({
               </Button>
             </>
           )}
-          {!isLoggedIn && (
+          {!isLoggedIn && !loading && (
             <>
               <Button variant="outline" onClick={() => router.push('/signin')}>
                 Sign in

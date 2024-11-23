@@ -144,7 +144,6 @@ export const columns: ColumnDef<CombinedOrderDetails, unknown>[] = [
     header: 'ITEMS',
     cell: ({ row }) => {
       const items = row.original.items;
-      // console.log("items", items);  // Log items for debugging
       if (!items || items.length === 0) {
         return <span>No items</span>;
       }

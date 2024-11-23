@@ -6,6 +6,7 @@ import CartItems from '@/components/cart';
 import { NavigationMenuDemo } from '@/components/navbar';
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -27,8 +28,8 @@ interface ShopPaymentDetails {
 
 export default function Checkout() {
   const [loading, setLoading] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // State for login status
-  const [items, setItems] = useState<CartItem[]>([]); // Use proper type instead of `any`
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [items, setItems] = useState<CartItem[]>([]);
   const [cartTotal, setCartTotal] = useState<number>(0);
   const [totalUniqueItems, setTotalUniqueItems] = useState<number>(0);
   const [shopPaymentDetails, setShopPaymentDetails] =
@@ -36,48 +37,46 @@ export default function Checkout() {
       type: '',
       details: []
     });
-  const [modalVisible, setModalVisible] = useState<boolean>(false); // State for modal visibility
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadedImage, setUploadedImage] = useState<any>(null); // Type `any` can be improved
+  const [uploadedImage, setUploadedImage] = useState<any>(null);
   const { toast } = useToast();
+  const Router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
-    // Check if running on the client side
+    const token = localStorage.getItem('token');
+    if (!token) {
+      Router.push('/');
+    }
+  }, []);
+
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
-      setIsLoggedIn(!!token); // Set login state based on token existence
+      setIsLoggedIn(!!token);
     }
 
-    // Fetch items from localStorage
     const cartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
     setItems(cartItems);
 
-    // Calculate cart total and unique items count
     const total = cartItems.reduce(
       (acc: number, item: CartItem) => acc + item.price * item.quantity,
       0
     );
     setCartTotal(total);
 
-    const uniqueItemsCount = cartItems.length;
-    setTotalUniqueItems(uniqueItemsCount);
-
-    setLoading(false); // Set loading to false once the data is fetched
+    setTotalUniqueItems(cartItems.length);
+    setLoading(false);
   }, []);
 
-  async function createCheckout() {
-    // Open modal when Proceed to Checkout is clicked
-    setModalVisible(true);
-  }
-
   const fetchShopPaymentDetails = async (shopId: string) => {
-    // console.log('Shop ID:', shopId);
     try {
       const response = await axios.get(
         `${API_URL}/api/shop/${shopId}/payment-details`
       );
       setShopPaymentDetails(response.data.methods[0]);
-      // console.log('Shop Payment Details:', response.data.methods[0]);
     } catch (error) {
       console.error('Error fetching shop payment details:', error);
     }
@@ -85,33 +84,23 @@ export default function Checkout() {
 
   useEffect(() => {
     if (items.length > 0) {
-      fetchShopPaymentDetails(items[0].shop_id); // Fetch payment details for the shop
+      fetchShopPaymentDetails(items[0].shop_id);
     }
   }, [items]);
-
-  function handleLogout() {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('token');
-      window.location.reload(); // Reload page after logout
-    }
-  }
 
   const handleImageUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const file = event.target.files?.[0]; // Use optional chaining to avoid undefined errors
-    // console.log('File:', file);
+    const file = event.target.files?.[0];
     if (!file) return;
 
     const formData = new FormData();
     formData.append('image', file);
-    // console.log('Form Data:', formData);
 
     setIsUploading(true);
     try {
       const response = await axios.post(`${API_URL}/api/imageupload`, formData);
       setUploadedImage(response.data.data);
-      // console.log('Image uploaded:', response.data);
     } catch (error) {
       console.error('Upload error:', error);
     } finally {
@@ -120,12 +109,16 @@ export default function Checkout() {
   };
 
   const handleSubmit = async () => {
-    console.log('Submitting payment proof');
-    console.log('Uploaded Image:', uploadedImage);
+    setVerifying(true);
     if (!uploadedImage) {
-      console.log('Please upload a payment screenshot'); // Change this to a toast or alert
+      toast({
+        title: 'Error',
+        description: 'Please upload a payment screenshot',
+        style: { backgroundColor: 'red', color: 'white' }
+      });
       return;
     }
+
     const PaymentData = {
       payment_screenshot_url: uploadedImage.url,
       shop_id: items[0].shop_id,
@@ -135,7 +128,6 @@ export default function Checkout() {
     };
 
     try {
-      // Verify payment and create order
       const response = await axios.post(
         `${API_URL}/api/verifyPaymentAndCreateOrder`,
         PaymentData,
@@ -146,26 +138,35 @@ export default function Checkout() {
         }
       );
 
-      console.log('Payment verification response:', response.data);
-
       if (response.data.status === 'success') {
         toast({
           title: 'Payment Verified',
           description: 'Your payment has been verified successfully',
           style: { backgroundColor: 'green', color: 'white' }
         });
-        // Empty cart after successful payment
         localStorage.setItem('cartItems', JSON.stringify([]));
         setItems([]);
         setCartTotal(0);
         setTotalUniqueItems(0);
         setModalVisible(false);
       } else {
-        console.log('Payment verification failed. Please try again.'); // Change this to a toast or alert
+        toast({
+          title: 'Payment Failed',
+          description: 'Verification failed. Please try again.',
+          style: { backgroundColor: 'red', color: 'white' }
+        });
       }
-    } catch (error) {
-      console.error('Payment verification error:', error);
+    } catch (error: any) {
+      setError(error.response.data.message);
+    } finally {
+      setVerifying(false);
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.clear();
+    setIsLoggedIn(false);
+    Router.push('/');
   };
 
   return (
@@ -207,7 +208,12 @@ export default function Checkout() {
               <div className="mt-4 space-y-4">
                 <Button
                   variant="default"
-                  onClick={createCheckout}
+                  onClick={() => {
+                    setUploadedImage(null);
+                    setError(null);
+
+                    setModalVisible(true);
+                  }}
                   className="w-full"
                 >
                   Proceed to Checkout
@@ -230,13 +236,16 @@ export default function Checkout() {
       </div>
 
       {/* Modal for Payment Proof */}
+      {/* Modal for Payment Proof */}
       {modalVisible && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-96 rounded-lg bg-white p-6">
             <h3 className="text-center text-xl font-semibold">
               Verify Payment
             </h3>
-            <div className="mt-4">
+
+            {/* Scrollable content section */}
+            <div className="mt-4 max-h-[60vh] overflow-y-auto">
               <p className="pt-1 text-sm">
                 <strong>Payment Method:</strong> {shopPaymentDetails.type}
               </p>
@@ -253,36 +262,43 @@ export default function Checkout() {
               <p>
                 <strong>Total Amount:</strong> Rs. {cartTotal}
               </p>
+
+              {/* Upload payment proof */}
+              <div className="mt-4">
+                <label className="mb-2 block text-sm">
+                  Upload Payment Proof
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="w-full"
+                />
+                {uploadedImage && (
+                  <div className="mb-4">
+                    <img
+                      src={uploadedImage.url}
+                      alt="Payment Screenshot"
+                      className="w-40 rounded-lg"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Upload payment proof */}
-            <div className="mt-4">
-              <label className="mb-2 block text-sm">Upload Payment Proof</label>
-
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="w-full"
-              />
-              {uploadedImage && (
-                <div className="mb-4">
-                  <img
-                    src={uploadedImage.url}
-                    alt="Payment Screenshot"
-                    className="w-40 rounded-lg"
-                  />
-                </div>
-              )}
-            </div>
+            <p className="text-sm text-red-500">{error}</p>
 
             {/* Buttons */}
             <div className="mt-6 flex justify-between">
               <Button variant="outline" onClick={() => setModalVisible(false)}>
                 Cancel
               </Button>
-              <Button variant="default" onClick={handleSubmit}>
-                Verify Payment
+              <Button
+                variant="default"
+                onClick={handleSubmit}
+                disabled={!uploadedImage || isUploading || verifying}
+              >
+                {verifying ? 'Verifying...' : 'Verify Payment'}
               </Button>
             </div>
 

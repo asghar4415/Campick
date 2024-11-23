@@ -62,7 +62,6 @@ export const CellAction: React.FC<{
   //   });
 
   //   socket.on('connect', () => {
-  //     console.log('Connected to Socket.IO server');
   //   });
 
   //   socket.on("newOrder", (newOrder) => {
@@ -91,7 +90,6 @@ export const CellAction: React.FC<{
   //   });
 
   //   socket.on('disconnect', () => {
-  //     console.log('Disconnected from Socket.IO server');
   //   });
 
   //   return () => {
@@ -117,10 +115,9 @@ export const CellAction: React.FC<{
           }
         }
       );
-      console.log(response.data);
       return response.data.paymentInfo.payment_id;
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -140,7 +137,6 @@ export const CellAction: React.FC<{
           }
         }
       );
-      console.log(updatingResponse.data);
       setOrderStatus(newStatus);
 
       // Update payment status
@@ -158,9 +154,8 @@ export const CellAction: React.FC<{
           }
         }
       );
-      console.log(paymentResponse.data);
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
     setLoading(false);
     closeModal();

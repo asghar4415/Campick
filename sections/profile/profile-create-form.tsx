@@ -14,6 +14,8 @@ import { useEffect, useReducer } from 'react';
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import axios from 'axios';
 import defaultImage from '@/public/shopowner.webp';
+import { useState } from 'react';
+import { set } from 'date-fns';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -63,6 +65,9 @@ export default function ProfileCreateForm({
   };
 
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [isUploading, setIsUploading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>('');
 
   const methods = useForm({
     defaultValues: {
@@ -107,10 +112,10 @@ export default function ProfileCreateForm({
     if (!token) {
       return;
     }
-
+    setLoading(true);
     try {
       const user_name = `${state.firstname} ${state.lastname}`;
-      await axios.put(
+      const respone = await axios.put(
         `${API_URL}/api/updateProfile`,
         {
           user_name,
@@ -126,11 +131,13 @@ export default function ProfileCreateForm({
     } catch (error: any) {
       console.error('Failed to update profile:', error.response || error);
     }
+    setLoading(false);
   };
 
   const handleImageUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
+    setIsUploading(true);
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -155,6 +162,7 @@ export default function ProfileCreateForm({
     } catch (error) {
       console.error('Upload error:', error);
     } finally {
+      setIsUploading(false);
       dispatch({ type: 'SET_FIELD', field: 'isUploading', value: false });
     }
   };
@@ -270,10 +278,9 @@ export default function ProfileCreateForm({
               )}
 
               <Button
-                variant="outline"
-                size="sm"
+                variant="default"
                 onClick={handleEditClick}
-                disabled={state.isUploading}
+                disabled={state.isUploading || loading}
               >
                 {state.isEditing ? 'Save Changes' : 'Edit Profile'}
               </Button>

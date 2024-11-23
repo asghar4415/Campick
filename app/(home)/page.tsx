@@ -46,7 +46,6 @@ export default function HomePage() {
       try {
         const response = await axios.get(`${API_URL}/api/getAllShops`);
         setShops(response.data);
-        // console.log('Shops:', response.data);
       } catch (error) {
         console.error('Error fetching shops:', error);
       }
@@ -113,22 +112,21 @@ export default function HomePage() {
 
       {/* Sidebar for checkout */}
       <CheckoutSidebar />
-
-      <div className="container mx-auto flex-1 overflow-auto px-4 py-8">
-        <CTA1 shopsRef={shopsRef} />
-
-        {/* Shops Section */}
-        <div className="w-full pt-20 lg:py-10">
-          {loading ? (
-            <div className="flex items-center justify-center">
-              <div className="flex h-screen items-center justify-center">
-                <div className="flex flex-col items-center space-y-4">
-                  <div className="h-16 w-16 animate-spin rounded-full border-b-4 border-t-4 border-blue-500"></div>
-                  <h2 className="text-2xl font-semibold">Loading</h2>
-                </div>
-              </div>
+      {loading ? (
+        <div className="flex items-center justify-center">
+          <div className="flex h-screen items-center justify-center">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="h-16 w-16 animate-spin rounded-full border-b-4 border-t-4 border-blue-500"></div>
+              <h2 className="text-2xl font-semibold">Loading</h2>
             </div>
-          ) : (
+          </div>
+        </div>
+      ) : (
+        <div className="container mx-auto flex-1 overflow-auto px-4 py-8">
+          <CTA1 shopsRef={shopsRef} />
+
+          {/* Shops Section */}
+          <div className="w-full pt-20 lg:py-10">
             <div className="container mx-auto flex flex-col gap-14">
               <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <h4 className="font-regular max-w-xl text-3xl tracking-tighter md:text-5xl">
@@ -154,7 +152,7 @@ export default function HomePage() {
                   >
                     <div className="mb-4 aspect-video rounded-md bg-muted">
                       <Image
-                        src={demoImg}
+                        src={setImage(shop.image_url)}
                         alt={shop.name}
                         width={300}
                         height={200}
@@ -172,22 +170,22 @@ export default function HomePage() {
                 ))}
               </div>
             </div>
+          </div>
+
+          {/* Conditionally render menu or prompt */}
+          {selectedShop ? (
+            <MenuDisplay ref={shopsRef} shop={selectedShop} />
+          ) : (
+            shops.length > 0 && (
+              <div className="mt-8 flex w-full items-center justify-center">
+                <h3 className="font-semibold text-foreground lg:text-xl">
+                  Select a shop to view their menu
+                </h3>
+              </div>
+            )
           )}
         </div>
-
-        {/* Conditionally render menu or prompt */}
-        {selectedShop ? (
-          <MenuDisplay ref={shopsRef} shop={selectedShop} />
-        ) : (
-          shops.length > 0 && (
-            <div className="flex w-full items-center justify-center">
-              <h3 className="text-xl font-semibold text-foreground">
-                Select a shop to view their menu
-              </h3>
-            </div>
-          )
-        )}
-      </div>
+      )}
       <Footer1 />
     </div>
   );
