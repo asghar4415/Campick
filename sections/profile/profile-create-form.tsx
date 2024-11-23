@@ -159,8 +159,15 @@ export default function ProfileCreateForm({
     }
   };
 
-  const selectImagePreview = () =>
-    state.imagePreview || state.imageURL || defaultImage;
+  const selectImagePreview = () => {
+    if (typeof state.imagePreview === 'string') {
+      return state.imagePreview;
+    }
+    if (typeof state.imageURL === 'string') {
+      return state.imageURL;
+    }
+    return typeof defaultImage === 'object' ? defaultImage.src : defaultImage;
+  };
 
   const onSubmit = async () => {
     await updateProfile();
