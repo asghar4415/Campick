@@ -47,13 +47,8 @@ export const CellAction: React.FC<{
 }> = ({ data }) => {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
-  const [orderStatus, setOrderStatus] = useState<string>('');
   const [newStatus, setNewStatus] = useState<string>(''); // Track new status for the order
   const [paymentStatus, setPaymentStatus] = useState<string>('');
-  const [selectedOrder, setSelectedOrder] =
-    useState<CombinedOrderDetails | null>(null);
-  const [orders, setOrders] = useState<CombinedOrderDetails[]>([]);
-
   const { toast } = useToast();
 
   // useEffect(() => {
@@ -128,7 +123,7 @@ export const CellAction: React.FC<{
   ) => {
     setLoading(true);
     try {
-      const updatingResponse = await axios.put(
+      await axios.put(
         `${API_URL}/api/updateOrderStatus/${order_id}`,
         { status: newStatus },
         {
@@ -137,12 +132,10 @@ export const CellAction: React.FC<{
           }
         }
       );
-      setOrderStatus(newStatus);
 
       // Update payment status
       const paymentId = await fetchPaymentId(order_id);
-
-      const paymentResponse = await axios.put(
+      await axios.put(
         `${API_URL}/api/updatePaymentStatus/${paymentId}`,
         {
           paymentId: paymentId,
@@ -154,8 +147,17 @@ export const CellAction: React.FC<{
           }
         }
       );
+      toast({
+        description: 'Order & Payment status updated successfully',
+        style: { backgroundColor: 'green', color: 'white' }
+      });
+      window.location.reload();
     } catch (error) {
       console.error(error);
+      toast({
+        description: 'Error updating order & payment status',
+        style: { backgroundColor: 'red', color: 'white' }
+      });
     }
     setLoading(false);
     closeModal();

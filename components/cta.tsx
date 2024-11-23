@@ -5,10 +5,11 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 interface CTA1Props {
+  isLoggedIn: boolean;
   shopsRef: React.RefObject<HTMLDivElement>;
 }
 
-export const CTA1: React.FC<CTA1Props> = ({ shopsRef }) => {
+export const CTA1: React.FC<CTA1Props> = ({ isLoggedIn, shopsRef }) => {
   const router = useRouter();
 
   const handleAddToCart = () => {
@@ -44,12 +45,14 @@ export const CTA1: React.FC<CTA1Props> = ({ shopsRef }) => {
               >
                 Add to Cart <ShoppingCart className="h-4 w-4" />
               </Button>
-              <Button
-                className="w-full gap-4 md:w-auto"
-                onClick={() => gotosignuppage()}
-              >
-                Are you a shop owner? <MoveRight className="h-4 w-4" />
-              </Button>
+              {!isLoggedIn && (
+                <Button
+                  className="w-full gap-4 md:w-auto"
+                  onClick={() => gotosignuppage()}
+                >
+                  Are you a shop owner? <MoveRight className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
 

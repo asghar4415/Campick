@@ -3,7 +3,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ColumnDef } from '@tanstack/react-table';
 
 import { CellAction } from './cell-action';
-import { string } from 'zod';
 
 // Define CombinedOrderDetails type
 interface OrderDetails {
@@ -96,8 +95,6 @@ export const columns: ColumnDef<CombinedOrderDetails, unknown>[] = [
     header: 'STATUS',
     cell: ({ row }) => {
       const status = row.getValue('status') as string;
-
-      // Function to determine the appropriate class based on status
       const getStatusClass = (status: string) => {
         switch (status) {
           case 'delivered':

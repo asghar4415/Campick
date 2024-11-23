@@ -194,7 +194,7 @@ export default function Checkout() {
               {/* Content scrollable area */}
               <div className="checkout-sidebar-scrollable max-h-[calc(100vh-10rem)] overflow-y-auto p-4">
                 {items.length > 0 ? (
-                  <CartItems /> // Pass items prop to CartItems component
+                  <CartItems />
                 ) : (
                   !loading && (
                     <h5 className="text-center text-gray-500">
@@ -208,10 +208,10 @@ export default function Checkout() {
               <div className="mt-4 space-y-4">
                 <Button
                   variant="default"
+                  disabled={items.length === 0}
                   onClick={() => {
                     setUploadedImage(null);
                     setError(null);
-
                     setModalVisible(true);
                   }}
                   className="w-full"
@@ -274,7 +274,7 @@ export default function Checkout() {
                   onChange={handleImageUpload}
                   className="w-full"
                 />
-                {uploadedImage && (
+                {uploadedImage && !isUploading ? (
                   <div className="mb-4">
                     <img
                       src={uploadedImage.url}
@@ -282,7 +282,11 @@ export default function Checkout() {
                       className="w-40 rounded-lg"
                     />
                   </div>
-                )}
+                ) : isUploading ? (
+                  <div className="mb-4 mt-5 items-center">
+                    <div className="h-16 w-16 animate-spin rounded-full border-b-4 border-t-4 border-blue-500"></div>
+                  </div>
+                ) : null}
               </div>
             </div>
 

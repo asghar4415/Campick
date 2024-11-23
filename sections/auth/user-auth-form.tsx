@@ -17,6 +17,8 @@ import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import GoogleSignInButton from './google-auth-button';
 import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const SIGNIN_URL = `${API_URL}/api/signin`;
@@ -31,6 +33,8 @@ const formSchema = z.object({
 type UserFormValue = z.infer<typeof formSchema>;
 
 export default function UserAuthForm() {
+  const { toast } = useToast();
+
   const router = useRouter();
   const form = useForm<UserFormValue>({
     resolver: zodResolver(formSchema)
@@ -51,10 +55,17 @@ export default function UserAuthForm() {
     try {
       const response = await axios.post(SIGNIN_URL, data);
       localStorage.setItem('token', response.data.token);
+      toast({
+        description: 'Login successful. Please wait...',
+        style: { backgroundColor: 'rgba(34, 139, 34, 0.8)', color: 'white' }
+      });
       redirectToPage(response.data.user_info.role);
     } catch (error: AxiosError | any) {
       if (error.response) {
-        alert(error.response.data.message || 'Login failed. Please try again.');
+        toast({
+          description: error.response.data.message,
+          style: { backgroundColor: 'rgba(220, 0, 0, 0.8)', color: 'white' }
+        });
       } else {
         alert('An unexpected error occurred.');
       }

@@ -16,6 +16,8 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const SIGNUP_URL = `${API_URL}/api/shop_signup`;
@@ -33,6 +35,7 @@ const formSchema = z.object({
 type UserFormValue = z.infer<typeof formSchema>;
 
 export default function UserSignupForm() {
+  const { toast } = useToast();
   const router = useRouter();
   const form = useForm<UserFormValue>({
     resolver: zodResolver(formSchema)
@@ -48,12 +51,18 @@ export default function UserSignupForm() {
         password: data.password
       });
 
-      alert('Signup successful. Please login to continue.');
+      toast({
+        description: 'Signup successful',
+        style: { backgroundColor: 'rgba(34, 139, 34, 0.8)', color: 'white' }
+      });
       router.push('/signin');
     } catch (error: AxiosError | any) {
       const errorMessage =
         error.response?.data?.message || 'Signup failed. Please try again.';
-      alert(errorMessage);
+      toast({
+        description: errorMessage,
+        style: { backgroundColor: 'rgba(139, 0, 0, 0.8)', color: 'white' }
+      });
     } finally {
       setLoading(false);
     }

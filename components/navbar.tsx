@@ -44,7 +44,7 @@ const UserMenu = ({
       <DropdownMenuItem>{userData.email || 'No email'}</DropdownMenuItem>
       <DropdownMenuSeparator />
       {/* <DropdownMenuItem>Settings</DropdownMenuItem> */}
-      <DropdownMenuItem>Support</DropdownMenuItem>
+      {/* <DropdownMenuItem>Support</DropdownMenuItem> */}
       <DropdownMenuItem onClick={onOrdersClick}>Orders</DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem onClick={onLogout}>Logout</DropdownMenuItem>

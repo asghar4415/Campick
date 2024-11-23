@@ -132,7 +132,6 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
       );
       if (!isSameShop) {
         toast({
-          title: 'Error',
           description: 'You can only add items from the same shop.',
           style: { backgroundColor: 'red', color: 'white' }
         });
@@ -151,9 +150,11 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
 
       updateCartCount(updatedCart); // Dispatch the updated cart item count
       toast({
-        title: 'success',
-        description: 'Item added to cart',
-        style: { backgroundColor: 'green', color: 'white' }
+        description: ` ${item.name}  added to cart`,
+        style: {
+          backgroundColor: 'rgba(34, 139, 34, 0.8)', // Darker green with opacity
+          color: 'white'
+        }
       });
     };
 
@@ -175,6 +176,13 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
       localStorage.setItem('cartItems', JSON.stringify(updatedCart));
 
       updateCartCount(updatedCart); // Dispatch the updated cart item count
+      toast({
+        description: 'Item removed from cart',
+        style: {
+          backgroundColor: 'rgba(220, 20, 60, 0.8)', // Darker red with opacity
+          color: 'white'
+        }
+      });
     };
 
     const updateCartCount = (cartItems: CartItem[]) => {
@@ -206,7 +214,9 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
     return (
       <div ref={ref} className="w-full py-10">
         <div className="container mx-auto">
-          <h2 className="text-3xl md:text-3xl">Menu Items</h2>
+          <h2 className="text-3xl font-medium tracking-tighter lg:text-4xl">
+            Menu Items
+          </h2>
           <br />
           <div className="flex flex-wrap gap-5">
             {menuItems.length === 0 ? (
@@ -238,14 +248,14 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
                   <div className="absolute bottom-4 right-4 flex gap-2">
                     <button
                       onClick={() => addToCart(item)}
-                      className="rounded-md bg-green-600 px-3 py-1 text-white hover:bg-green-700"
+                      className="rounded-md bg-green-700 px-3 py-1 text-white opacity-80 hover:bg-green-800"
                       aria-label={`Add ${item.name} to cart`}
                     >
                       +
                     </button>
                     <button
                       onClick={() => removeFromCart(item.item_id)}
-                      className="rounded-md bg-red-600 px-3 py-1 text-white hover:bg-red-700"
+                      className="rounded-md bg-red-700 px-3 py-1 text-white opacity-90 hover:bg-red-800"
                     >
                       -
                     </button>

@@ -123,13 +123,13 @@ export default function HomePage() {
         </div>
       ) : (
         <div className="container mx-auto flex-1 overflow-auto px-4 py-8">
-          <CTA1 shopsRef={shopsRef} />
+          <CTA1 isLoggedIn={isLoggedIn} shopsRef={shopsRef} />
 
           {/* Shops Section */}
           <div className="w-full pt-20 lg:py-10">
             <div className="container mx-auto flex flex-col gap-14">
               <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <h4 className="font-regular max-w-xl text-3xl tracking-tighter md:text-5xl">
+                <h4 className="max-w-xl text-3xl font-medium tracking-tighter md:text-5xl">
                   Visit Shops
                 </h4>
               </div>
