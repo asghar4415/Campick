@@ -11,6 +11,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import axios from 'axios';
+import { set } from 'date-fns';
 import { useState } from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -19,10 +20,12 @@ export function AddNewMenuItem({ shopId }: { shopId: string }) {
   const [newMenuItem, setNewMenuItem] = useState({
     name: '',
     description: '',
-    price: ''
+    price: '',
+    image_url: ''
   });
 
   const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
   const [success, setSuccess] = useState<string>('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,6 +39,7 @@ export function AddNewMenuItem({ shopId }: { shopId: string }) {
   const addNewItem = async () => {
     setError('');
     setSuccess('');
+    setLoading(true);
     try {
       const token = localStorage.getItem('token'); // Retrieve token inside the function
       if (!token) {
@@ -43,7 +47,7 @@ export function AddNewMenuItem({ shopId }: { shopId: string }) {
         return;
       }
 
-      await axios.post(
+      const addMenu = await axios.post(
         `${API_URL}/api/shop/${shopId}/addMenuItem`,
         newMenuItem,
         {
@@ -54,7 +58,8 @@ export function AddNewMenuItem({ shopId }: { shopId: string }) {
       );
 
       setSuccess('Menu item added successfully!');
-      setNewMenuItem({ name: '', description: '', price: '' });
+      setNewMenuItem({ name: '', description: '', price: '', image_url: '' });
+
       window.location.reload();
 
       // Clear success message after 3 seconds
@@ -67,6 +72,34 @@ export function AddNewMenuItem({ shopId }: { shopId: string }) {
         err.response?.data?.message ||
           'Failed to add menu item. Please try again.'
       );
+    } finally {
+      setLoading(false);
+    }
+  };
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState<any>(null);
+
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    setIsUploading(true);
+    try {
+      const response = await axios.post(`${API_URL}/api/imageupload`, formData);
+      setUploadedImage(response.data.data);
+      setNewMenuItem((prev) => ({
+        ...prev,
+        image_url: response.data.data.url
+      }));
+    } catch (error) {
+      console.error('Upload error:', error);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -121,11 +154,33 @@ export function AddNewMenuItem({ shopId }: { shopId: string }) {
               className="col-span-3"
             />
           </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="image_url" className="text-right">
+              Image
+            </Label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="w-full"
+            />
+            {uploadedImage && (
+              <div className="mb-4">
+                <img
+                  src={uploadedImage.url}
+                  alt="Payment Screenshot"
+                  className="w-full rounded-lg"
+                />
+              </div>
+            )}
+          </div>
         </div>
+
         {error && <p className="text-red-500">{error}</p>}
         {success && <p className="text-green-500">{success}</p>}
         <DialogFooter>
           <Button
+            disabled={isUploading || loading}
             onClick={() => {
               if (
                 !newMenuItem.name ||
@@ -138,7 +193,7 @@ export function AddNewMenuItem({ shopId }: { shopId: string }) {
               addNewItem();
             }}
           >
-            Add
+            {loading ? 'Adding...' : 'Add'}
           </Button>
         </DialogFooter>
       </DialogContent>

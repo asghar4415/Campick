@@ -7,6 +7,9 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import VerifyEmailModal from '@/components/verify-email-modal';
 import jwtDecode from 'jsonwebtoken';
+import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from '@radix-ui/react-toast';
+import socket from '@/lib/socket';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -18,6 +21,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const validateToken = () => {
@@ -52,6 +56,7 @@ export default function DashboardLayout({
             Authorization: `Bearer ${token}`
           }
         });
+        // console.log('User data:', data);
 
         setIsVerified(data.is_verified);
       } catch (error) {
@@ -63,11 +68,34 @@ export default function DashboardLayout({
     getUserData();
   }, []);
 
+  useEffect(() => {
+    socket.on('orderCreate', (data) => {
+      // console.log('New order received:', data);
+      toast({
+        style: { backgroundColor: 'green', color: 'white' },
+        title: 'New order received',
+        description: `Order ${data.order_id} received.`,
+        action: (
+          <ToastAction
+            altText="Go to Orders"
+            onClick={() => router.push('/shopdashboard/orders')}
+          >
+            View Orders
+          </ToastAction>
+        )
+      });
+    });
+
+    return () => {
+      socket.off('orderUpdate');
+    };
+  }, []);
+
   return (
     <div className="flex min-h-screen">
       <Sidebar />
       <main className="relative w-full flex-1">
-        {isVerified === false && !loading ? <VerifyEmailModal /> : null}
+        {!isVerified && !loading ? <VerifyEmailModal /> : null}
         <Header />
         {children}
       </main>

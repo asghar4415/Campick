@@ -95,6 +95,7 @@ export const columns: ColumnDef<CombinedOrderDetails, unknown>[] = [
     header: 'STATUS',
     cell: ({ row }) => {
       const status = row.getValue('status') as string;
+      // console.log(status);
       const getStatusClass = (status: string) => {
         switch (status) {
           case 'delivered':

@@ -10,6 +10,8 @@ import CheckoutSidebar from '@/components/cart-sidebar';
 import axios from 'axios';
 import Image from 'next/image';
 import demoImg from '@/public/demoimg.png';
+import socket from '@/lib/socket';
+import { useToast } from '@/hooks/use-toast';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -39,6 +41,18 @@ export default function HomePage() {
       return false;
     }
   };
+  const { toast } = useToast();
+
+  useEffect(() => {
+    socket.on('orderUpdate', (data) => {
+      // console.log('Order update:', data);
+
+      toast({
+        style: { backgroundColor: 'green', color: 'white' },
+        title: `Your order id:${data.order_id} status Updated to ${data.status}`
+      });
+    });
+  }, []);
 
   // Fetch shops data from the API
   useEffect(() => {

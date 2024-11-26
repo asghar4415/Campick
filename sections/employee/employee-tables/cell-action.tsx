@@ -7,13 +7,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { Edit, MoreHorizontal, Trash } from 'lucide-react';
+import { Edit, MoreHorizontal } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { ToastAction } from '@/components/ui/toast';
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import io from 'socket.io-client';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -37,104 +35,79 @@ interface OrderItems {
   order_id: string;
 }
 
-// Define the combined type
 interface CombinedOrderDetails extends OrderDetails {
-  items: OrderItems[]; // Add 'items' property to OrderDetails
+  items: OrderItems[];
 }
 
-export const CellAction: React.FC<{
-  data: CombinedOrderDetails;
-}> = ({ data }) => {
+export const CellAction: React.FC<{ data: CombinedOrderDetails }> = ({
+  data
+}) => {
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [newStatus, setNewStatus] = useState<string>(''); // Track new status for the order
-  const [paymentStatus, setPaymentStatus] = useState<string>('');
+  const [modalType, setModalType] = useState<
+    'order' | 'payment' | 'view' | null
+  >(null);
+  const [newStatus, setNewStatus] = useState('');
+  const [paymentStatus, setPaymentStatus] = useState('');
   const { toast } = useToast();
 
-  // useEffect(() => {
-  //   const socket = io(API_URL, {
-  //     transports: ['polling'], // Ensure WebSocket transport is used
-  //   });
-
-  //   socket.on('connect', () => {
-  //   });
-
-  //   socket.on("newOrder", (newOrder) => {
-  //     setOrders((prevOrders) => [newOrder, ...prevOrders]);
-  //     toast({
-  //       style: { backgroundColor: 'green', color: 'white' },
-  //       title: 'New order received',
-  //       description: `Order ${newOrder.order_id} received from ${newOrder.user_name}`,
-  //     });
-  //   });
-
-  //   socket.on("orderUpdate", (updatedOrder) => {
-  //     setOrders((prevOrders) =>
-  //       prevOrders.map((order) =>
-  //         order.order_id === updatedOrder.order_id ? updatedOrder : order
-  //       )
-  //     );
-  //     if (selectedOrder && selectedOrder.order_id === updatedOrder.order_id) {
-  //       setSelectedOrder(updatedOrder);
-  //     }
-  //     toast({
-  //       style: { backgroundColor: 'green', color: 'white' },
-  //       title: 'Order updated',
-  //       description: `Order ${updatedOrder.order_id} status updated to ${updatedOrder.status}`,
-  //     });
-  //   });
-
-  //   socket.on('disconnect', () => {
-  //   });
-
-  //   return () => {
-  //     socket.disconnect();
-  //   };
-  // }, [selectedOrder]);
-
-  const openModal = () => {
-    setOpen(true);
-  };
-
-  const closeModal = () => {
-    setOpen(false);
-  };
+  useEffect(() => {
+    console.log('Order details:', data);
+  }, [data]);
 
   const fetchPaymentId = async (order_id: string) => {
     try {
       const response = await axios.get(
         `${API_URL}/api/getPaymentId/${order_id}`,
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         }
       );
       return response.data.paymentInfo.payment_id;
     } catch (error) {
       console.error(error);
+      toast({
+        description: 'Error fetching payment ID',
+        style: { backgroundColor: 'red', color: 'white' }
+      });
+      return null;
     }
   };
 
-  const updatePaymentandOrderStatus = async (
-    order_id: string,
-    newStatus: string,
-    paymentStatus: string
-  ) => {
+  const updateOrderStatus = async () => {
+    if (!newStatus) return;
     setLoading(true);
     try {
       await axios.put(
-        `${API_URL}/api/updateOrderStatus/${order_id}`,
+        `${API_URL}/api/updateOrderStatus/${data.order_id}`,
         { status: newStatus },
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         }
       );
+      window.location.reload();
+      toast({
+        description: 'Order status updated successfully',
+        style: { backgroundColor: 'green', color: 'white' }
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        description: 'Error updating order status',
+        style: { backgroundColor: 'red', color: 'white' }
+      });
+    }
+    setLoading(false);
+    setModalType(null);
+  };
 
-      // Update payment status
-      const paymentId = await fetchPaymentId(order_id);
+  const updatePaymentStatus = async () => {
+    if (!paymentStatus) return;
+    setLoading(true);
+    try {
+      const paymentId = await fetchPaymentId(data.order_id);
+      if (!paymentId) throw new Error('Invalid payment ID');
+
+      console.log('Payment ID:', paymentId);
       await axios.put(
         `${API_URL}/api/updatePaymentStatus/${paymentId}`,
         {
@@ -142,25 +115,27 @@ export const CellAction: React.FC<{
           status: paymentStatus
         },
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         }
       );
       toast({
-        description: 'Order & Payment status updated successfully',
+        description: 'Payment status updated successfully',
         style: { backgroundColor: 'green', color: 'white' }
       });
       window.location.reload();
     } catch (error) {
       console.error(error);
       toast({
-        description: 'Error updating order & payment status',
+        description: 'Error updating payment status',
         style: { backgroundColor: 'red', color: 'white' }
       });
     }
     setLoading(false);
-    closeModal();
+    setModalType(null);
+  };
+
+  const closeModal = () => {
+    setModalType(null);
   };
 
   return (
@@ -174,73 +149,124 @@ export const CellAction: React.FC<{
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-
-          <DropdownMenuItem onClick={openModal}>
-            <Edit className="mr-2 h-4 w-4" /> Update Status
+          <DropdownMenuItem onClick={() => setModalType('payment')}>
+            <Edit className="mr-2 h-4 w-4" /> Update Payment Status
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setOpen(true)}>
-            <Trash className="mr-2 h-4 w-4" /> Delete Order
+          <DropdownMenuItem onClick={() => setModalType('order')}>
+            <Edit className="mr-2 h-4 w-4" /> Update Order Status
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setModalType('view')}>
+            View Details
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Modal for updating order status */}
-      {open && (
+      {/* Modal Component */}
+      {modalType && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-80 rounded-lg bg-white p-6 shadow-lg">
-            <h2 className="text-md mb-4 font-semibold">
-              Update Payment Status
-            </h2>
-            <select
-              value={paymentStatus}
-              onChange={(e) => setPaymentStatus(e.target.value)}
-              className="mb-4 w-full rounded border p-2"
-            >
-              <option value="" disabled>
-                {data.payment_status || 'Select payment status'}
-              </option>
+            {modalType === 'order' && (
+              <>
+                <h2 className="text-md mb-4 font-semibold">
+                  Update Order Status
+                </h2>
+                <select
+                  value={newStatus}
+                  onChange={(e) => setNewStatus(e.target.value)}
+                  className="mb-4 w-full rounded border p-2"
+                >
+                  <option value="" disabled>
+                    {data.status || 'Select order status'}
+                  </option>
+                  <option value="preparing">Preparing</option>
+                  <option value="accepted">Accepted</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="discarded">Discarded</option>
+                </select>
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" onClick={closeModal}>
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="default"
+                    onClick={updateOrderStatus}
+                    disabled={!newStatus || loading}
+                  >
+                    {loading ? 'Updating...' : 'Update'}
+                  </Button>
+                </div>
+              </>
+            )}
 
-              <option value="pending">Pending</option>
-              <option value="verified">Verified</option>
-              <option value="rejected">Rejected</option>
-            </select>
+            {modalType === 'payment' && (
+              <>
+                <h2 className="text-md mb-4 font-semibold">
+                  Update Payment Status
+                </h2>
+                <select
+                  value={paymentStatus}
+                  onChange={(e) => setPaymentStatus(e.target.value)}
+                  className="mb-4 w-full rounded border p-2"
+                >
+                  <option value="" disabled>
+                    {data.payment_status || 'Select payment status'}
+                  </option>
+                  <option value="pending">Pending</option>
+                  <option value="verified">Verified</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" onClick={closeModal}>
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="default"
+                    onClick={updatePaymentStatus}
+                    disabled={!paymentStatus || loading}
+                  >
+                    {loading ? 'Updating...' : 'Update'}
+                  </Button>
+                </div>
+              </>
+            )}
 
-            <h2 className="text-md mb-4 mt-4 font-semibold">
-              Update Order Status
-            </h2>
-            <select
-              value={newStatus}
-              onChange={(e) => setNewStatus(e.target.value)}
-              className="mb-4 w-full rounded border p-2"
-            >
-              <option value="" disabled>
-                {data.status || 'Select order status'}
-              </option>
-
-              <option value="preparing">Preparing</option>
-              <option value="accepted">Accepted</option>
-              <option value="rejected">Rejected</option>
-              <option value="delivered">Delivered</option>
-              <option value="discarded">Discarded</option>
-            </select>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={closeModal}>
-                Cancel
-              </Button>
-              <Button
-                variant="default"
-                onClick={() => {
-                  updatePaymentandOrderStatus(
-                    data.order_id,
-                    newStatus,
-                    paymentStatus
-                  );
-                }}
-                disabled={!newStatus || !paymentStatus || loading}
-              >
-                {loading ? 'Updating...' : 'Update'}
-              </Button>
-            </div>
+            {modalType === 'view' && (
+              <>
+                <h2 className="text-center text-lg font-semibold sm:text-left">
+                  Order Details
+                </h2>
+                <div className="mt-4 space-y-2 text-sm">
+                  <p>
+                    <strong>Order ID:</strong> {data.order_id}
+                  </p>
+                  <p>
+                    <strong>User Name:</strong> {data.user_name}
+                  </p>
+                  <p>
+                    <strong>Email:</strong> {data.email}
+                  </p>
+                  <p>
+                    <strong>Total Price:</strong> Rs. {data.total_price}
+                  </p>
+                  <p>
+                    <strong>Payment Status:</strong> {data.payment_status}
+                  </p>
+                  <p>
+                    <strong>Order Status:</strong> {data.status}
+                  </p>
+                  <p>
+                    <strong>Order Date & Time:</strong>{' '}
+                    {new Date(data.created_at).toLocaleString()}
+                  </p>
+                </div>
+                <div className="mt-6 flex justify-end">
+                  <Button onClick={closeModal} className="w-full sm:w-auto">
+                    Close
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

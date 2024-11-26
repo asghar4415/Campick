@@ -128,7 +128,7 @@ export function DataTable<TData, TValue>({
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
-                  onClick={() => showOrderDetails(row.original)}
+                  // onClick={() => showOrderDetails(row.original)}
                   className="cursor-pointer"
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
@@ -157,44 +157,6 @@ export function DataTable<TData, TValue>({
         </Table>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
-      {modalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-11/12 max-w-lg rounded-lg bg-white p-6 sm:w-1/2 md:w-1/3 lg:w-1/4">
-            <h2 className="text-center text-lg font-semibold sm:text-left">
-              Order Details
-            </h2>
-            <div className="mt-4 space-y-2 text-sm">
-              <p>
-                <strong>Order ID:</strong> {orderDetails.order_id}
-              </p>
-              <p>
-                <strong>User Name:</strong> {orderDetails.user_name}
-              </p>
-              <p>
-                <strong>Email:</strong> {orderDetails.email}
-              </p>
-              <p>
-                <strong>Total Price:</strong> Rs. {orderDetails.total_price}
-              </p>
-              <p>
-                <strong>Payment Status:</strong> {orderDetails.payment_status}
-              </p>
-              <p>
-                <strong>Order Status:</strong> {orderDetails.status}
-              </p>
-              <p>
-                <strong> Order Date & time:</strong>{' '}
-                {new Date(orderDetails.created_at).toLocaleString()}
-              </p>
-            </div>
-            <div className="mt-6 flex justify-end">
-              <Button onClick={closeModal} className="w-full sm:w-auto">
-                Close
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="flex flex-col items-center justify-end gap-2 space-x-2 py-4 sm:flex-row">
         <div className="flex w-full items-center justify-between">

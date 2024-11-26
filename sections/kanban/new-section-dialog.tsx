@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import axios from 'axios';
+import { set } from 'date-fns';
 import { useState } from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -33,6 +34,7 @@ export default function NewSectionDialog() {
   });
   const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [creatingShop, setCreatingShop] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<any>(null);
 
@@ -85,6 +87,7 @@ export default function NewSectionDialog() {
       setError('No token found. Please login.');
       return;
     }
+    setCreatingShop(true);
 
     try {
       await axios.post(`${API_URL}/api/createShop`, newShop, {
@@ -102,6 +105,7 @@ export default function NewSectionDialog() {
           'Failed to create shop. Please try again.'
       );
     }
+    setCreatingShop(false);
   };
 
   const handleImageUpload = async (
@@ -239,7 +243,7 @@ export default function NewSectionDialog() {
           {error && <div className="text-red-500">{error}</div>}
           <DialogFooter>
             <Button type="submit" size="sm" form="shop-form">
-              Add Shop
+              {creatingShop ? 'Creating...' : 'Create Shop'}
             </Button>
           </DialogFooter>
         </DialogContent>

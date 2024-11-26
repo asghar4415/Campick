@@ -9,6 +9,8 @@ import { AddNewMenuItem } from '@/components/add_new_item';
 import Image from 'next/image';
 import { UpdateMenuItem } from '@/components/update_menu_item';
 import { DeleteItem } from '@/components/delete_menu_item';
+import demoImg from '@/public/demoimg.png';
+import { set } from 'date-fns';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -29,6 +31,7 @@ interface MenuItem {
   name: string;
   description: string;
   price: string;
+  image_url: string;
 }
 
 export function AllShops({ shopExists }: { shopExists: boolean }) {
@@ -110,10 +113,9 @@ export function AllShops({ shopExists }: { shopExists: boolean }) {
     fetchShopData();
   }, [isMounted]);
 
-  // const editShopDetails = () => {
-  //   setisShopEdit(true);
-
-  // };
+  const setImage = (image_url: string) => {
+    return image_url || demoImg.src;
+  };
 
   if (!isMounted) return null;
 
@@ -190,18 +192,31 @@ export function AllShops({ shopExists }: { shopExists: boolean }) {
                 {menuItems.map((item, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between rounded-lg bg-gray-100 p-4"
+                    className="flex items-center gap-5 rounded-lg bg-gray-100 p-4 "
                   >
                     <div>
-                      <h4 className="text-lg font-semibold">{item.name}</h4>
-                      <p className="text-sm text-gray-600">
-                        {item.description}
-                      </p>
-                      <p className="text-sm text-green-600">Rs. {item.price}</p>
+                      <Image
+                        src={setImage(item.image_url)}
+                        alt={item.name}
+                        width={100}
+                        height={100}
+                        className="rounded-md"
+                      />
                     </div>
-                    <div className=" flex flex-col gap-2">
-                      <UpdateMenuItem shopId={shopId} menuItem={item} />
-                      <DeleteItem shopId={shopId} itemId={item.item_id} />
+                    <div className="flex w-full items-center justify-between ">
+                      <div>
+                        <h4 className="text-lg font-semibold">{item.name}</h4>
+                        <p className="text-sm text-gray-600">
+                          {item.description}
+                        </p>
+                        <p className="text-sm text-green-600">
+                          Rs. {item.price}
+                        </p>
+                      </div>
+                      <div className=" flex flex-col gap-2">
+                        <UpdateMenuItem shopId={shopId} menuItem={item} />
+                        <DeleteItem shopId={shopId} itemId={item.item_id} />
+                      </div>
                     </div>
                   </div>
                 ))}

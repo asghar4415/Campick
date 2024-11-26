@@ -140,8 +140,8 @@ export default function Checkout() {
 
       if (response.data.status === 'success') {
         toast({
-          title: 'Payment Verified',
-          description: 'Your payment has been verified successfully',
+          title: 'Payment Verified and order placed',
+          // description: 'Your payment has been verified successfully',
           style: { backgroundColor: 'green', color: 'white' }
         });
         localStorage.setItem('cartItems', JSON.stringify([]));

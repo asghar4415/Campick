@@ -64,13 +64,19 @@ export default function OverViewPage() {
             }
           );
 
+          const deliveredOrders = dashboardResponse.data.recentOrders.filter(
+            (order: any) => order.status === 'delivered'
+          );
+
           setDashboardData({
             revenue: dashboardResponse.data.revenue,
             shopDetails: shops
           });
-          setRecentOrders(dashboardResponse.data.recentOrders);
+
+          setRecentOrders(deliveredOrders);
         } else {
           setError('No shops found for this owner.');
+          setRecentOrders([]);
         }
 
         // Fetch profile data
