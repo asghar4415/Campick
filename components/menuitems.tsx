@@ -149,6 +149,7 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
       localStorage.setItem('cartItems', JSON.stringify(updatedCart));
 
       updateCartCount(updatedCart); // Dispatch the updated cart item count
+
       toast({
         description: ` ${item.name}  added to cart`,
         style: {
@@ -248,14 +249,14 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
                   <div className="absolute bottom-4 right-4 flex gap-2">
                     <button
                       onClick={() => addToCart(item)}
-                      className="rounded-md bg-green-700 px-3 py-1 text-white opacity-80 hover:bg-green-800"
+                      className="rounded-md border border-black px-3 py-1 text-black opacity-80 hover:bg-gray-200 hover:opacity-70"
                       aria-label={`Add ${item.name} to cart`}
                     >
                       +
                     </button>
                     <button
                       onClick={() => removeFromCart(item.item_id)}
-                      className="rounded-md bg-red-700 px-3 py-1 text-white opacity-90 hover:bg-red-800"
+                      className="rounded-md border border-black px-3 py-1 text-black opacity-80 hover:bg-gray-200 hover:opacity-70"
                     >
                       -
                     </button>

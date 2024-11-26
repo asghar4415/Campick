@@ -194,7 +194,7 @@ export default function Checkout() {
               {/* Content scrollable area */}
               <div className="checkout-sidebar-scrollable max-h-[calc(100vh-10rem)] overflow-y-auto p-4">
                 {items.length > 0 ? (
-                  <CartItems />
+                  <CartItems items={items} />
                 ) : (
                   !loading && (
                     <h5 className="text-center text-gray-500">

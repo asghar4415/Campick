@@ -6,7 +6,6 @@ import CartItems from './cart';
 const CheckoutSidebar = () => {
   const [cartState, setCartState] = useState(false);
   const [items, setItems] = useState([]);
-  const [cartItemCount, setCartItemCount] = useState(0);
 
   const router = useRouter();
 
@@ -20,14 +19,12 @@ const CheckoutSidebar = () => {
     // Sync cart items from localStorage
     const savedItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
     setItems(savedItems);
-    setCartItemCount(savedItems.length);
 
     const updateItems = () => {
       const updatedItems = JSON.parse(
         localStorage.getItem('cartItems') || '[]'
       );
       setItems(updatedItems);
-      setCartItemCount(updatedItems.length);
     };
 
     const handleCartToggle = () => {
@@ -54,7 +51,6 @@ const CheckoutSidebar = () => {
 
   const emptyHandler = () => {
     setItems([]);
-    setCartItemCount(0);
     localStorage.setItem('cartItems', JSON.stringify([]));
     window.dispatchEvent(new CustomEvent('cartUpdated', { detail: 0 }));
     closeHandler();
@@ -93,7 +89,8 @@ const CheckoutSidebar = () => {
           {items.length > 0 ? (
             <>
               <div className="mt-6 flex flex-col gap-4">
-                <CartItems /> {/* Pass items to CartItems component */}
+                <CartItems items={items} />
+
                 <Button variant="default" onClick={gotoCheckout}>
                   Proceed to Checkout
                 </Button>

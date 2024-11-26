@@ -10,19 +10,14 @@ interface CartItem {
   price: number;
   shop_name: string;
   shop_id: string;
-  image: string;
+  image_url: string;
 }
 
-const CartItems = () => {
-  const [items, setItems] = useState<CartItem[]>([]);
+interface CartItemsProps {
+  items: CartItem[];
+}
 
-  useEffect(() => {
-    const savedCart = localStorage.getItem('cartItems');
-    if (savedCart) {
-      setItems(JSON.parse(savedCart));
-    }
-  }, []);
-
+const CartItems: React.FC<CartItemsProps> = ({ items }) => {
   const updateItemQuantity = (
     item: CartItem,
     action: 'add' | 'reduce',
@@ -46,7 +41,6 @@ const CartItems = () => {
       })
       .filter((item) => item !== null);
 
-    setItems(updatedItems.filter((item) => item !== null) as CartItem[]); // Update state
     localStorage.setItem('cartItems', JSON.stringify(updatedItems)); // Save updated cart to localStorage
   };
 
@@ -86,6 +80,10 @@ const CartItems = () => {
     );
   };
 
+  const showimage = (image: string) => {
+    return image || demoProduct.src;
+  };
+
   const totalitems = () => {
     let total = 0;
     items.forEach((item) => {
@@ -109,7 +107,7 @@ const CartItems = () => {
           <li className="flex p-4" key={'cartItem-' + index}>
             <div className="w-1/4">
               <Image
-                src={demoProduct}
+                src={showimage(item.image_url)}
                 alt={item.name}
                 width={300}
                 height={200}
