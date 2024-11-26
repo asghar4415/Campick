@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import demoProduct from '@/public/demoimg.png';
 import Image from 'next/image';
 

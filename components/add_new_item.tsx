@@ -11,8 +11,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import axios from 'axios';
-import { set } from 'date-fns';
 import { useState } from 'react';
+import Image from 'next/image';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -47,7 +47,7 @@ export function AddNewMenuItem({ shopId }: { shopId: string }) {
         return;
       }
 
-      const addMenu = await axios.post(
+      await axios.post(
         `${API_URL}/api/shop/${shopId}/addMenuItem`,
         newMenuItem,
         {
@@ -62,12 +62,10 @@ export function AddNewMenuItem({ shopId }: { shopId: string }) {
 
       window.location.reload();
 
-      // Clear success message after 3 seconds
       setTimeout(() => {
         setSuccess('');
       }, 3000);
     } catch (err: any) {
-      // console.error('Error adding menu item:', err);
       setError(
         err.response?.data?.message ||
           'Failed to add menu item. Please try again.'
@@ -166,7 +164,7 @@ export function AddNewMenuItem({ shopId }: { shopId: string }) {
             />
             {uploadedImage && (
               <div className="mb-4">
-                <img
+                <Image
                   src={uploadedImage.url}
                   alt="Payment Screenshot"
                   className="w-full rounded-lg"

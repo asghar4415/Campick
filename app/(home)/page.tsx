@@ -45,8 +45,6 @@ export default function HomePage() {
 
   useEffect(() => {
     socket.on('orderUpdate', (data) => {
-      // console.log('Order update:', data);
-
       toast({
         style: { backgroundColor: 'green', color: 'white' },
         title: `Your order id:${data.order_id} status Updated to ${data.status}`
@@ -54,7 +52,6 @@ export default function HomePage() {
     });
   }, []);
 
-  // Fetch shops data from the API
   useEffect(() => {
     const fetchShops = async () => {
       try {

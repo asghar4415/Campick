@@ -13,7 +13,7 @@ import {
 import { MouseEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import AdminSearch from '@/components/admin-search';
+// import AdminSearch from '@/components/admin-search';
 import MainLogo from '@/public/black logo.png';
 
 interface UserData {

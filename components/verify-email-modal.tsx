@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
