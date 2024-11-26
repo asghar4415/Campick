@@ -90,7 +90,6 @@ export default function OverViewPage() {
           email: profileResponse.data.email
         });
       } catch (err) {
-        console.error(err);
         setError('Failed to fetch data. Please try again.');
       } finally {
         setLoading(false);

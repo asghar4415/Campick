@@ -51,7 +51,6 @@ export function DeleteItem({
         setSuccess('');
       }, 3000);
     } catch (err: any) {
-      console.error('Error deleting menu item:', err);
       setError(
         err.response?.data?.message ||
           'Failed to delete menu item. Please try again.'

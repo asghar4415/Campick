@@ -128,9 +128,7 @@ export default function ProfileCreateForm({
           }
         }
       );
-    } catch (error: any) {
-      console.error('Failed to update profile:', error.response || error);
-    }
+    } catch (error: any) {}
     setLoading(false);
   };
 
@@ -160,7 +158,6 @@ export default function ProfileCreateForm({
         throw new Error('Image upload failed.');
       }
     } catch (error) {
-      console.error('Upload error:', error);
     } finally {
       setIsUploading(false);
       dispatch({ type: 'SET_FIELD', field: 'isUploading', value: false });

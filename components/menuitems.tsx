@@ -85,7 +85,6 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
             );
             setMenuItems(response.data.items || []);
           } catch (error) {
-            console.error('Error fetching menu items:', error);
           } finally {
             setLoading(false);
           }

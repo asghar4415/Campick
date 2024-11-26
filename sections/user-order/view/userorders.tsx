@@ -73,7 +73,6 @@ export default function Checkout() {
 
       setUserOrders(response.data.orders || []);
     } catch (error) {
-      console.error('Error fetching user orders:', error);
       setUserOrders([]);
     } finally {
       setLoading(false);
@@ -104,7 +103,6 @@ export default function Checkout() {
       setOrderDetails(response.data.items || []);
       setIsModalOpen(true);
     } catch (error) {
-      console.error('Error fetching order or shop details:', error);
       toast({ description: 'Failed to fetch order details.' });
     } finally {
       setFetchingOrderDetails(false);

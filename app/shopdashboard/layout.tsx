@@ -56,7 +56,6 @@ export default function DashboardLayout({
             Authorization: `Bearer ${token}`
           }
         });
-        // console.log('User data:', data);
 
         setIsVerified(data.is_verified);
       } catch (error) {
@@ -70,7 +69,6 @@ export default function DashboardLayout({
 
   useEffect(() => {
     socket.on('orderCreate', (data) => {
-      // console.log('New order received:', data);
       toast({
         style: { backgroundColor: 'green', color: 'white' },
         title: 'New order received',

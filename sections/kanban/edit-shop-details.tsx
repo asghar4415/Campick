@@ -115,7 +115,6 @@ export default function EditShopDetails({
         image_url: response.data.data.url // Assuming the uploaded image URL is in response.data.data.url
       }));
     } catch (error) {
-      console.error('Upload error:', error);
     } finally {
       setIsUploading(false);
     }

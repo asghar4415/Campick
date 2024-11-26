@@ -150,7 +150,13 @@ export const NavigationMenuDemo = ({
       <div className="container relative mx-auto flex min-h-20 flex-row items-center justify-between gap-4 px-4 lg:px-8">
         {/* Left Section: Search (Hidden on Small Screens) */}
         <div className="hidden lg:flex lg:flex-1">
-          <AdminSearch />
+          {/* <AdminSearch /> */}
+          <button
+            className="btn btn-primary ml-10 font-semibold"
+            onClick={() => router.push('/')}
+          >
+            Home
+          </button>
         </div>
 
         {/* Middle Section: Logo */}

@@ -50,9 +50,7 @@ export const CellAction: React.FC<{ data: CombinedOrderDetails }> = ({
   const [paymentStatus, setPaymentStatus] = useState('');
   const { toast } = useToast();
 
-  useEffect(() => {
-    console.log('Order details:', data);
-  }, [data]);
+  useEffect(() => {}, [data]);
 
   const fetchPaymentId = async (order_id: string) => {
     try {
@@ -64,7 +62,6 @@ export const CellAction: React.FC<{ data: CombinedOrderDetails }> = ({
       );
       return response.data.paymentInfo.payment_id;
     } catch (error) {
-      console.error(error);
       toast({
         description: 'Error fetching payment ID',
         style: { backgroundColor: 'red', color: 'white' }
@@ -90,7 +87,6 @@ export const CellAction: React.FC<{ data: CombinedOrderDetails }> = ({
         style: { backgroundColor: 'green', color: 'white' }
       });
     } catch (error) {
-      console.error(error);
       toast({
         description: 'Error updating order status',
         style: { backgroundColor: 'red', color: 'white' }
@@ -107,7 +103,6 @@ export const CellAction: React.FC<{ data: CombinedOrderDetails }> = ({
       const paymentId = await fetchPaymentId(data.order_id);
       if (!paymentId) throw new Error('Invalid payment ID');
 
-      console.log('Payment ID:', paymentId);
       await axios.put(
         `${API_URL}/api/updatePaymentStatus/${paymentId}`,
         {
@@ -124,7 +119,6 @@ export const CellAction: React.FC<{ data: CombinedOrderDetails }> = ({
       });
       window.location.reload();
     } catch (error) {
-      console.error(error);
       toast({
         description: 'Error updating payment status',
         style: { backgroundColor: 'red', color: 'white' }

@@ -77,9 +77,7 @@ export default function Checkout() {
         `${API_URL}/api/shop/${shopId}/payment-details`
       );
       setShopPaymentDetails(response.data.methods[0]);
-    } catch (error) {
-      console.error('Error fetching shop payment details:', error);
-    }
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -102,7 +100,6 @@ export default function Checkout() {
       const response = await axios.post(`${API_URL}/api/imageupload`, formData);
       setUploadedImage(response.data.data);
     } catch (error) {
-      console.error('Upload error:', error);
     } finally {
       setIsUploading(false);
     }

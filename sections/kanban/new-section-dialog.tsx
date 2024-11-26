@@ -64,7 +64,6 @@ export default function NewSectionDialog() {
           setError('Please verify your account first.');
         }
       } catch (err) {
-        // console.error('Error verifying user:', err);
         setError('Failed to verify user.');
       } finally {
         setLoading(false);
@@ -99,7 +98,6 @@ export default function NewSectionDialog() {
       window.location.reload();
       setError('');
     } catch (err: any) {
-      // console.error('Failed to create shop:', err.response?.data);
       setError(
         err.response?.data?.message ||
           'Failed to create shop. Please try again.'
@@ -122,7 +120,6 @@ export default function NewSectionDialog() {
       const response = await axios.post(`${API_URL}/api/imageupload`, formData);
       setUploadedImage(response.data.data);
     } catch (error) {
-      console.error('Upload error:', error);
     } finally {
       setIsUploading(false);
     }

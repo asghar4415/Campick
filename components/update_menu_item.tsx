@@ -81,7 +81,6 @@ export function UpdateMenuItem({
         setSuccess('');
       }, 3000);
     } catch (err: any) {
-      console.error('Error updating menu item:', err);
       setError(
         err.response?.data?.message ||
           'Failed to update menu item. Please try again.'

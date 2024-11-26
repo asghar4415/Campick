@@ -67,7 +67,7 @@ export function AddNewMenuItem({ shopId }: { shopId: string }) {
         setSuccess('');
       }, 3000);
     } catch (err: any) {
-      console.error('Error adding menu item:', err);
+      // console.error('Error adding menu item:', err);
       setError(
         err.response?.data?.message ||
           'Failed to add menu item. Please try again.'
@@ -97,7 +97,7 @@ export function AddNewMenuItem({ shopId }: { shopId: string }) {
         image_url: response.data.data.url
       }));
     } catch (error) {
-      console.error('Upload error:', error);
+      // console.error('Upload error:', error);
     } finally {
       setIsUploading(false);
     }

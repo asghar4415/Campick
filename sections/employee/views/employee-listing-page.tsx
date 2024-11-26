@@ -54,15 +54,12 @@ export default function EmployeeListingPage() {
           });
           setOrders(response.data.orders);
           setTotalOrders(response.data.orders.length);
-          // console.log(response.data.orders);
           var orderItems = [];
           for (let i = 0; i < response.data.orders.length; i++) {
             orderItems.push(response.data.orders[i].items);
           }
           setOrderItems(orderItems.flat());
-        } catch (error) {
-          console.error('Error fetching orders:', error);
-        }
+        } catch (error) {}
         setLoading(false);
       };
       fetchOrders();
