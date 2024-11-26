@@ -11,7 +11,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import axios from 'axios';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -35,6 +35,10 @@ export function AddNewMenuItem({ shopId }: { shopId: string }) {
       [id]: value
     }));
   };
+
+  useEffect(() => {
+    setNewMenuItem({ name: '', description: '', price: '', image_url: '' });
+  }, [shopId]);
 
   const addNewItem = async () => {
     setError('');
