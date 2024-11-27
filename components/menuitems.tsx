@@ -229,15 +229,16 @@ export const MenuDisplay = forwardRef<HTMLDivElement, MenuDisplayProps>(
                   className="relative flex w-full flex-col gap-2 rounded-md bg-muted p-4 shadow-md md:w-80"
                   key={item.item_id}
                 >
-                  <div className="mb-4 aspect-video rounded-md">
+                  <div className="mb-4 aspect-video w-full overflow-hidden rounded-md">
                     <Image
                       src={setImage(item.image_url)}
                       alt={item.name}
                       width={300}
                       height={200}
-                      className="rounded-md"
+                      className="h-full w-full rounded-md object-cover"
                     />
                   </div>
+
                   <h3 className="text-lg font-semibold tracking-tight md:text-xl">
                     {item.name}
                   </h3>

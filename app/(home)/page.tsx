@@ -155,26 +155,27 @@ export default function HomePage() {
 
                 {shops.map((shop) => (
                   <div
-                    key={shop.id} // Key for rendering efficiency
+                    key={shop.id}
                     className={`flex cursor-pointer flex-col gap-2 hover:opacity-75 ${
                       selectedShop?.id === shop.id
                     }`}
                     onClick={() => handleShopClick(shop)}
                   >
-                    <div className="mb-4 aspect-video rounded-md bg-muted">
+                    <div className="mb-4 aspect-video w-full overflow-hidden rounded-md">
                       <Image
                         src={setImage(shop.image_url)}
                         alt={shop.name}
                         width={300}
                         height={200}
-                        className="rounded-md"
+                        className="h-full w-full rounded-md object-cover"
                       />
                     </div>
+
                     <h3 className="text-xl tracking-tight">{shop.name}</h3>
                     <p className="text-base text-muted-foreground">
                       {shop.description}
                     </p>
-                    <p className="text-base text-muted-foreground">
+                    <p className="-mt-2 text-base text-muted-foreground">
                       Contact: {shop.contact_number}
                     </p>
                   </div>
