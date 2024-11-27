@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import demoProduct from '@/public/demoimg.png';
 import Image from 'next/image';
 
@@ -18,12 +18,18 @@ interface CartItemsProps {
 }
 
 const CartItems: React.FC<CartItemsProps> = ({ items }) => {
+  const [newItems, setNewItems] = useState<CartItem[]>([]);
+  useEffect(() => {
+    const savedCart = localStorage.getItem('cartItems');
+    setNewItems(savedCart ? JSON.parse(savedCart) : items);
+  }, [items]);
+
   const updateItemQuantity = (
     item: CartItem,
     action: 'add' | 'reduce',
     value: number
   ) => {
-    const updatedItems = items
+    const updatedItems = newItems
       .map((cartItem) => {
         if (cartItem.item_id === item.item_id) {
           const newQuantity =
@@ -32,23 +38,24 @@ const CartItems: React.FC<CartItemsProps> = ({ items }) => {
               : cartItem.quantity - value;
 
           if (newQuantity <= 0) {
-            return null; // Indicating that the item should be removed
+            return null;
           }
 
           return { ...cartItem, quantity: Math.max(newQuantity, 1) }; // Prevent quantity from going below 1
         }
         return cartItem;
       })
-      .filter((item) => item !== null);
+      .filter((cartItem) => cartItem !== null) as CartItem[]; // Ensure non-null items
 
-    localStorage.setItem('cartItems', JSON.stringify(updatedItems)); // Save updated cart to localStorage
+    setNewItems(updatedItems); // Update the state with new items
+    localStorage.setItem('cartItems', JSON.stringify(updatedItems)); // Save the updated cart in localStorage
   };
 
   const cartQuantity = (item: CartItem) => {
     return (
       <div className="flex justify-between">
         <button
-          className="rounded-l-md bg-gray-800 p-2 pl-3 pr-3 text-white"
+          className="rounded-l-md bg-gray-800 p-2 pl-3 pr-3 text-white hover:bg-gray-700 "
           onClick={() => updateItemQuantity(item, 'reduce', 1)}
         >
           -
@@ -56,12 +63,12 @@ const CartItems: React.FC<CartItemsProps> = ({ items }) => {
         <input
           type="text"
           aria-label="Item quantity"
-          className="w-full border border-gray-300 p-2 text-center"
+          className="w-full border border-gray-300 p-2 text-center "
           readOnly
           value={item.quantity}
         />
         <button
-          className="rounded-r-md bg-gray-800 p-2 pl-3 pr-3 text-white"
+          className="rounded-r-md bg-gray-800 p-2 pl-3 pr-3 text-white hover:bg-gray-700"
           onClick={() => updateItemQuantity(item, 'add', 1)}
         >
           +
@@ -86,7 +93,7 @@ const CartItems: React.FC<CartItemsProps> = ({ items }) => {
 
   const totalitems = () => {
     let total = 0;
-    items.forEach((item) => {
+    newItems.forEach((item) => {
       total += item.quantity;
     });
     return total;
@@ -94,7 +101,7 @@ const CartItems: React.FC<CartItemsProps> = ({ items }) => {
 
   const totalPrice = () => {
     let total = 0;
-    items.forEach((item) => {
+    newItems.forEach((item) => {
       total += item.price * item.quantity;
     });
     return total;
@@ -103,7 +110,7 @@ const CartItems: React.FC<CartItemsProps> = ({ items }) => {
   return (
     <>
       <ul className="space-y-4 border-b pb-4">
-        {items.map((item, index) => (
+        {newItems.map((item, index) => (
           <li className="flex p-4" key={'cartItem-' + index}>
             <div className="w-1/4">
               <Image
