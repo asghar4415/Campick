@@ -39,6 +39,13 @@ interface CombinedOrderDetails extends OrderDetails {
   items: OrderItems[];
 }
 
+interface PaymentDetails {
+  customerName: string;
+  role: string;
+  payment_screenshot: string;
+  payment_method: string;
+}
+
 export const CellAction: React.FC<{ data: CombinedOrderDetails }> = ({
   data
 }) => {
@@ -48,6 +55,10 @@ export const CellAction: React.FC<{ data: CombinedOrderDetails }> = ({
   >(null);
   const [newStatus, setNewStatus] = useState('');
   const [paymentStatus, setPaymentStatus] = useState('');
+  const [gettingPaymentInfo, setGettingPaymentInfo] = useState(false);
+  const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(
+    null
+  );
   const { toast } = useToast();
 
   useEffect(() => {}, [data]);
@@ -91,9 +102,10 @@ export const CellAction: React.FC<{ data: CombinedOrderDetails }> = ({
         description: 'Error updating order status',
         style: { backgroundColor: 'red', color: 'white' }
       });
+    } finally {
+      setLoading(false);
+      setModalType(null);
     }
-    setLoading(false);
-    setModalType(null);
   };
 
   const updatePaymentStatus = async () => {
@@ -105,10 +117,7 @@ export const CellAction: React.FC<{ data: CombinedOrderDetails }> = ({
 
       await axios.put(
         `${API_URL}/api/updatePaymentStatus/${paymentId}`,
-        {
-          paymentId: paymentId,
-          status: paymentStatus
-        },
+        { paymentId, status: paymentStatus },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         }
@@ -123,9 +132,39 @@ export const CellAction: React.FC<{ data: CombinedOrderDetails }> = ({
         description: 'Error updating payment status',
         style: { backgroundColor: 'red', color: 'white' }
       });
+    } finally {
+      setLoading(false);
+      setModalType(null);
     }
-    setLoading(false);
-    setModalType(null);
+  };
+
+  const fetchPaymentDetails = async (order_id: string) => {
+    setGettingPaymentInfo(true);
+    try {
+      const paymentId = await fetchPaymentId(order_id);
+      if (!paymentId) return;
+
+      const response = await axios.get(
+        `${API_URL}/api/paymentDetails/${paymentId}`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        }
+      );
+      console.log(response.data.data);
+      setPaymentDetails({
+        customerName: response.data.data.customer_name,
+        role: response.data.data.role,
+        payment_screenshot: response.data.data.payment.screenshotUrl,
+        payment_method: response.data.data.payment.method
+      });
+    } catch (error) {
+      toast({
+        description: 'Error fetching payment details',
+        style: { backgroundColor: 'red', color: 'white' }
+      });
+    } finally {
+      setGettingPaymentInfo(false);
+    }
   };
 
   const closeModal = () => {
@@ -149,7 +188,12 @@ export const CellAction: React.FC<{ data: CombinedOrderDetails }> = ({
           <DropdownMenuItem onClick={() => setModalType('order')}>
             <Edit className="mr-2 h-4 w-4" /> Update Order Status
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setModalType('view')}>
+          <DropdownMenuItem
+            onClick={() => {
+              fetchPaymentDetails(data.order_id);
+              setModalType('view');
+            }}
+          >
             View Details
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -227,38 +271,45 @@ export const CellAction: React.FC<{ data: CombinedOrderDetails }> = ({
 
             {modalType === 'view' && (
               <>
-                <h2 className="text-center text-lg font-semibold sm:text-left">
-                  Order Details
-                </h2>
-                <div className="mt-4 space-y-2 text-sm">
-                  <p>
-                    <strong>Order ID:</strong> {data.order_id}
-                  </p>
-                  <p>
-                    <strong>User Name:</strong> {data.user_name}
-                  </p>
-                  <p>
-                    <strong>Email:</strong> {data.email}
-                  </p>
-                  <p>
-                    <strong>Total Price:</strong> Rs. {data.total_price}
-                  </p>
-                  <p>
-                    <strong>Payment Status:</strong> {data.payment_status}
-                  </p>
-                  <p>
-                    <strong>Order Status:</strong> {data.status}
-                  </p>
-                  <p>
-                    <strong>Order Date & Time:</strong>{' '}
-                    {new Date(data.created_at).toLocaleString()}
-                  </p>
-                </div>
-                <div className="mt-6 flex justify-end">
-                  <Button onClick={closeModal} className="w-full sm:w-auto">
-                    Close
-                  </Button>
-                </div>
+                {gettingPaymentInfo ? (
+                  <div className="text-center">Loading details...</div>
+                ) : (
+                  <>
+                    <h2 className="text-center text-lg font-semibold sm:text-left">
+                      Order Details
+                    </h2>
+                    <div className="mt-4 space-y-2 text-sm">
+                      <p>
+                        <strong>Order ID:</strong> {data.order_id}
+                      </p>
+                      <p>
+                        <strong>Customer Name:</strong> {data.user_name}
+                      </p>
+                      <p>
+                        <strong>Role:</strong> {paymentDetails?.role}
+                      </p>
+                      <p>
+                        <strong>Payment Method:</strong>{' '}
+                        {paymentDetails?.payment_method}
+                      </p>
+                      <p>
+                        <strong>Screenshot:</strong>
+                      </p>
+                      <div className="max-h-96 overflow-auto">
+                        <img
+                          className="w-full"
+                          src={paymentDetails?.payment_screenshot}
+                          alt="Payment Screenshot"
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-4 flex justify-end">
+                      <Button variant="default" onClick={closeModal}>
+                        Close
+                      </Button>
+                    </div>
+                  </>
+                )}
               </>
             )}
           </div>
